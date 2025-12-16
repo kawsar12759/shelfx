@@ -22,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${playfair.className} antialiased`}
+        className={`${playfair.className} antialiased bg-[#FBFAF8]`}
       >
         <NavBar />
         {children}

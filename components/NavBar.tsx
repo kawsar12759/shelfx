@@ -20,7 +20,7 @@ const NavBar = () => {
                 <div className='flex items-center justify-between h-16'>
                     <Link href="/" className='flex items-center gap-2'>
                         <BookKey className='w-6 h-6' />
-                        <span className='text-xl font-bold text-foreground'>Shelfx</span></Link>
+                        <span className='text-xl font-bold text-foreground'>ShelfX</span></Link>
                     <div className='flex items-center gap-2'>
                         <Button variant={isActive("/") ? "default" : "ghost"} size="sm" asChild>
                         <Link href="/" className='gap-2'><BookOpen className='w-4 h-4' />
