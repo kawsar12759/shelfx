@@ -1,5 +1,6 @@
 "use client"
 import { Button } from '@/components/ui/button';
+import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
 import { BookKey, BookOpen, Compass, Library, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -23,7 +24,7 @@ const NavBar = () => {
                         <span className='text-xl font-bold text-foreground'>ShelfX</span></Link>
                     <div className='flex items-center gap-2'>
                         <Button variant={isActive("/") ? "default" : "ghost"} size="sm" asChild>
-                        <Link href="/" className='gap-2'><BookOpen className='w-4 h-4' />
+                            <Link href="/" className='gap-2'><BookOpen className='w-4 h-4' />
                                 <span className='hidden sm:inline'>Feed</span></Link></Button>
                         <Button variant={isActive("/explore") ? "default" : "ghost"} size="sm" asChild
                         ><Link href="/explore" className='gap-2'><Compass className='w-4 h-4' />
@@ -34,8 +35,16 @@ const NavBar = () => {
                         <Button variant={isActive("/library") ? "default" : "ghost"} size="sm" asChild
                         ><Link href="/library" className='gap-2'><Library className='w-4 h-4' />
                                 <span className='hidden sm:inline'>Library</span></Link></Button>
-                        <Button variant={"outline"}
-                        ><Link href="/">Sign In</Link></Button>
+
+                        <SignedOut>
+                            <SignInButton><Button variant={"outline"} size={"sm"}
+                            ><Link href="/">Sign In</Link></Button></SignInButton>
+                        </SignedOut>
+
+                        <SignedIn>
+                            <UserButton />
+                        </SignedIn>
+
                     </div>
                 </div>
             </div>

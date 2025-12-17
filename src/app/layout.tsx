@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Playfair } from "next/font/google";
 import "./globals.css";
 import NavBar from "../../components/NavBar";
+import { ClerkProvider } from "@clerk/nextjs";
 
 const playfair = Playfair({
   variable: "--font-playfair",
@@ -20,13 +21,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${playfair.className} antialiased bg-[#FBFAF8]`}
-      >
-        <NavBar />
-        {children}
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body
+          className={`${playfair.className} antialiased bg-[#FBFAF8]`}
+        >
+          <NavBar />
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
