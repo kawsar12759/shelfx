@@ -4,8 +4,10 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import axios from "axios";
 import { BookPlus } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 const popularGenres = [
@@ -33,8 +35,8 @@ type FormDataState = {
   title: string;
   author: string;
   summary: string;
-  publishedYear: string; 
-  pages: string; 
+  publishedYear: string;
+  pages: string;
   language: string;
   cover: File | null;
   genre: string;
@@ -46,7 +48,7 @@ const AddBookForm = () => {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [selectedGenre, setSelectedGenre] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
-
+  const router = useRouter();
   const [formData, setFormData] = useState<FormDataState>({
     title: "",
     author: "",
@@ -154,8 +156,21 @@ const AddBookForm = () => {
     if (formData.cover) fd.append("cover", formData.cover);
 
     fd.forEach((value, key) => console.log(key, value));
+    try {
+      await axios.post("/api/books", fd, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      console.log("Book added!!!");
+      router.push("/explore");
+    } catch (error) {
+      console.log("Error adding Book:", error);
+    }
+    finally {
+      setIsLoading(false);
+    }
 
-    setIsLoading(false);
   };
 
   return (
