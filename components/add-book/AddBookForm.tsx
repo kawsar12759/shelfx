@@ -7,8 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
 import { BookPlus } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify"; // Importing toast
 
 const popularGenres = [
   "Classic",
@@ -48,7 +48,8 @@ const AddBookForm = () => {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [selectedGenre, setSelectedGenre] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+
+  // Form state
   const [formData, setFormData] = useState<FormDataState>({
     title: "",
     author: "",
@@ -155,22 +156,31 @@ const AddBookForm = () => {
     fd.append("genre", formData.genre);
     if (formData.cover) fd.append("cover", formData.cover);
 
-    fd.forEach((value, key) => console.log(key, value));
     try {
       await axios.post("/api/books", fd, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      console.log("Book added!!!");
-      router.push("/explore");
+      toast.success("Book added successfully!"); // Success Toast
+      setFormData({
+        title: "",
+        author: "",
+        summary: "",
+        publishedYear: "",
+        pages: "",
+        language: "",
+        cover: null,
+        genre: "",
+      });
+      setCoverPreview(null);
+      setSelectedGenre("");
     } catch (error) {
-      console.log("Error adding Book:", error);
-    }
-    finally {
+      console.error("Error adding Book:", error);
+      toast.error("Error adding book. Please try again."); // Error Toast
+    } finally {
       setIsLoading(false);
     }
-
   };
 
   return (
@@ -239,7 +249,7 @@ const AddBookForm = () => {
                   type="file"
                   accept="image/*"
                   onChange={handleFileChange}
-                  className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-5 file:rounded-full file:border-0 file:bg-[#6B4F3F] file:text-white file:font-semibold file:tracking-wide file:transition file:duration-200 file:ease-out hover:file:scale-105 hover:file:bg-[#5A4033] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6B4F3F]/70 focus-visible:ring-offset-2 cursor-pointer"
+                  className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-5 file:rounded-full file:border-0 file:bg-[#6B4F3F] file:text-white file:font-semibold file:tracking-wide hover:file:cursor-pointer active:file:scale-95 hover:file:bg-[#5A4033] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6B4F3F]/70 focus-visible:ring-offset-2 cursor-pointer"
                 />
                 <p className="text-sm text-muted-foreground mt-1">
                   Upload a cover image (JPEG/PNG). Max size: 5MB
@@ -349,7 +359,8 @@ const AddBookForm = () => {
 
           {/* Submit */}
           <div className="pt-4">
-            <Button type="submit" size="lg" className="w-full cursor-pointer" disabled={isLoading}>
+            <Button type="submit" size="lg" className="w-full cursor-pointer active:scale-95
+            " disabled={isLoading}>
               <BookPlus className={`w-5 h-5 mr-2 ${isLoading ? "animate-spin" : ""}`} />
               {isLoading ? "Adding..." : "Add Book to Library"}
             </Button>

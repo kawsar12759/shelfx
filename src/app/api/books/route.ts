@@ -4,6 +4,7 @@ import Book from "../../../../models/book";
 import { error } from "console";
 import { Upload } from "lucide-react";
 import { UploadImage } from "@/lib/upload-image";
+import { NextRequest } from "next/server";
 
 export async function POST(req: Request) {
     try {
@@ -43,14 +44,26 @@ export async function POST(req: Request) {
         if (cover) {
             uploadResult = await UploadImage(cover, "ShelfX");
         }
-        console.log(uploadResult);
         const book = await Book.create({
-            title, author, cover: uploadResult?.secure_url || cover.name, genre, summary, publishedYear, pages, language, addedBy: { id: user?.id, firstName: user?.firstName }
+            title, author, cover: uploadResult?.secure_url || cover.name, genre, summary, publishedYear, pages, language, addedBy: { id: user?.id, firstName: `${user?.firstName} ${user?.lastName}`}
         })
-
+        console.log(user);
         return Response.json({ book }, { status: 201 })
     } catch (error) {
         console.error("Error creating book:", error);
         return Response.json({ error: "Failed to create book" }, { status: 500 })
+    }
+}
+
+export async function GET(request: NextRequest) {
+    try {
+        await connectToDatabase();
+
+        const books = await Book.find().sort({ createdAt: -1 });
+
+        return Response.json({ books }, { status: 200 });
+    } catch (error) {
+        console.error("Error Fetching Books");
+        return Response.json({ error: "Failed to fetch books" }, { status: 500 });
     }
 }

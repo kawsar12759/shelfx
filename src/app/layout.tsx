@@ -3,6 +3,7 @@ import { Playfair } from "next/font/google";
 import "./globals.css";
 import NavBar from "../../components/NavBar";
 import { ClerkProvider } from "@clerk/nextjs";
+import { ToastContainer } from "react-toastify";
 
 const playfair = Playfair({
   variable: "--font-playfair",
@@ -27,6 +28,7 @@ export default function RootLayout({
           className={`${playfair.className} antialiased bg-[#FBFAF8]`}
         >
           <NavBar />
+          <ToastContainer />
           {children}
         </body>
       </html>
