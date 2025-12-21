@@ -21,6 +21,7 @@ const popularGenres = [
   "Poetry",
   "Mystery",
   "Fantasy",
+  "History",
   "Science Fiction",
   "Thriller",
   "Horror",
@@ -39,17 +40,15 @@ type FormDataState = {
   pages: string;
   language: string;
   cover: File | null;
-  genre: string;
+  genre: string[];
 };
 
 type ErrorsState = Partial<Record<keyof FormDataState, string>>;
 
 const AddBookForm = () => {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const [selectedGenre, setSelectedGenre] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Form state
   const [formData, setFormData] = useState<FormDataState>({
     title: "",
     author: "",
@@ -58,7 +57,7 @@ const AddBookForm = () => {
     pages: "",
     language: "",
     cover: null,
-    genre: "",
+    genre: [],
   });
 
   const [errors, setErrors] = useState<ErrorsState>({});
@@ -104,8 +103,20 @@ const AddBookForm = () => {
   };
 
   const handleGenreSelect = (genre: string) => {
-    setSelectedGenre(genre);
-    setFormData((prev) => ({ ...prev, genre }));
+    const currentGenres = [...formData.genre];
+
+    if (currentGenres.includes(genre)) {
+      setFormData((prev) => ({
+        ...prev,
+        genre: currentGenres.filter((g) => g !== genre),
+      }));
+    } else if (currentGenres.length < 3) {
+      setFormData((prev) => ({
+        ...prev,
+        genre: [...currentGenres, genre],
+      }));
+    }
+
     setErrors((prev) => ({ ...prev, genre: undefined }));
   };
 
@@ -119,7 +130,7 @@ const AddBookForm = () => {
     if (!formData.title.trim()) nextErrors.title = "Book title is required";
     if (!formData.author.trim()) nextErrors.author = "Author name is required";
     if (!formData.cover) nextErrors.cover = "Cover image is required";
-    if (!formData.genre) nextErrors.genre = "Genre is required";
+    if (formData.genre.length === 0) nextErrors.genre = "At least one genre is required";
     if (!formData.summary.trim()) nextErrors.summary = "Summary is required";
 
     if (!formData.publishedYear.trim() || Number.isNaN(year)) {
@@ -153,16 +164,20 @@ const AddBookForm = () => {
     fd.append("publishedYear", formData.publishedYear);
     fd.append("pages", formData.pages);
     fd.append("language", formData.language);
-    fd.append("genre", formData.genre);
+    formData.genre.forEach((g) => {
+      fd.append("genre[]", g);
+    });
     if (formData.cover) fd.append("cover", formData.cover);
-
+    for (const [key, value] of fd.entries()) {
+      console.log(key, value);
+    }
     try {
       await axios.post("/api/books", fd, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      toast.success("Book added successfully!"); // Success Toast
+      toast.success("Book added successfully!");
       setFormData({
         title: "",
         author: "",
@@ -171,13 +186,12 @@ const AddBookForm = () => {
         pages: "",
         language: "",
         cover: null,
-        genre: "",
+        genre: [],
       });
       setCoverPreview(null);
-      setSelectedGenre("");
     } catch (error) {
       console.error("Error adding Book:", error);
-      toast.error("Error adding book. Please try again."); // Error Toast
+      toast.error("Error adding book. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -269,10 +283,11 @@ const AddBookForm = () => {
                 <Button
                   key={genre}
                   type="button"
-                  variant={selectedGenre === genre ? "default" : "outline"}
+                  variant={formData.genre.includes(genre) ? "default" : "outline"}
                   size="sm"
                   className="rounded-full"
                   onClick={() => handleGenreSelect(genre)}
+                  disabled={formData.genre.length >= 3 && !formData.genre.includes(genre)} // Disable button if 3 genres are selected and the genre isn't already selected
                 >
                   {genre}
                 </Button>
@@ -280,6 +295,7 @@ const AddBookForm = () => {
             </div>
             {errors.genre && <p className="text-red-500 text-sm">{errors.genre}</p>}
           </div>
+
 
           {/* Summary */}
           <div className="space-y-2">
@@ -309,7 +325,7 @@ const AddBookForm = () => {
               id="publishedYear"
               name="publishedYear"
               type="number"
-              placeholder="1813"
+              placeholder="Enter Publlication Year"
               min={1000}
               max={new Date().getFullYear()}
               className="h-12 text-base focus-visible:ring-2 focus-visible:ring-[#6B4F3F]/70 focus-visible:ring-offset-2"
@@ -330,7 +346,7 @@ const AddBookForm = () => {
               id="pages"
               name="pages"
               type="number"
-              placeholder="e.g., 300"
+              placeholder="Enter Number of Pages"
               className="h-12 text-base focus-visible:ring-2 focus-visible:ring-[#6B4F3F]/70 focus-visible:ring-offset-2"
               value={formData.pages}
               onChange={handleInputChange}
@@ -359,8 +375,7 @@ const AddBookForm = () => {
 
           {/* Submit */}
           <div className="pt-4">
-            <Button type="submit" size="lg" className="w-full cursor-pointer active:scale-95
-            " disabled={isLoading}>
+            <Button type="submit" size="lg" className="w-full cursor-pointer" disabled={isLoading}>
               <BookPlus className={`w-5 h-5 mr-2 ${isLoading ? "animate-spin" : ""}`} />
               {isLoading ? "Adding..." : "Add Book to Library"}
             </Button>

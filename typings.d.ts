@@ -1,9 +1,9 @@
 interface Book {
-    _id:string;
+    _id: string;
     title: string;
     author: string;
     cover: string;
-    genre: string;
+    genre: string[];
     summary: string;
     publishedYear: number;
     pages: number;
@@ -12,6 +12,6 @@ interface Book {
         id: string;
         firstName: string;
     };
-    createdAt:string;
-    updatedAt:string;
+    createdAt: string;
+    updatedAt: string;
 }

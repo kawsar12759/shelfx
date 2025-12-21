@@ -1,8 +1,6 @@
 import { connectToDatabase } from "@/lib/connectToDB";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import Book from "../../../../models/book";
-import { error } from "console";
-import { Upload } from "lucide-react";
 import { UploadImage } from "@/lib/upload-image";
 import { NextRequest } from "next/server";
 
@@ -20,7 +18,7 @@ export async function POST(req: Request) {
 
         const title = formData.get("title")?.toString() || "";
         const author = formData.get("author")?.toString() || "";
-        const genre = formData.get("genre")?.toString() || "";
+        const genre = formData.getAll("genre[]").map((g) => g.toString());
         const summary = formData.get("summary")?.toString() || "";
         const language = formData.get("language")?.toString() || "";
         const publishedYearData = formData.get("publishedYear")?.toString() || "";
@@ -29,7 +27,7 @@ export async function POST(req: Request) {
 
         const publishedYear = publishedYearData ? Number(publishedYearData) : undefined;
         const cover = formData.get("cover") as File;
-        if (!title || !author || !cover || !genre || !summary || !language || !publishedYear || !pages) {
+        if (!title || !author || !cover || genre.length===0 || !summary || !language || !publishedYear || !pages) {
             return Response.json(
                 {
                     error:

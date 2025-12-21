@@ -4,7 +4,7 @@ import RecentlyAdded from "../../components/home/RecentlyAdded";
 
 export default function Home() {
   return (
-    <div className="pb-10">
+    <div className="">
 
       <Hero />
       <RecentlyAdded />
