@@ -27,7 +27,7 @@ export async function POST(req: Request) {
 
         const publishedYear = publishedYearData ? Number(publishedYearData) : undefined;
         const cover = formData.get("cover") as File;
-        if (!title || !author || !cover || genre.length===0 || !summary || !language || !publishedYear || !pages) {
+        if (!title || !author || !cover || genre.length === 0 || !summary || !language || !publishedYear || !pages) {
             return Response.json(
                 {
                     error:
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
             uploadResult = await UploadImage(cover, "ShelfX");
         }
         const book = await Book.create({
-            title, author, cover: uploadResult?.secure_url || cover.name, genre, summary, publishedYear, pages, language, addedBy: { id: user?.id, firstName: `${user?.firstName} ${user?.lastName}`}
+            title, author, cover: uploadResult?.secure_url || cover.name, genre, summary, publishedYear, pages, language, addedBy: { id: user?.id, firstName: `${user?.firstName} ${user?.lastName}` }
         })
         console.log(user);
         return Response.json({ book }, { status: 201 })
@@ -56,8 +56,15 @@ export async function POST(req: Request) {
 export async function GET(request: NextRequest) {
     try {
         await connectToDatabase();
-
-        const books = await Book.find().sort({ createdAt: -1 });
+        const genreParam = request.nextUrl.searchParams.get("genre");
+        const query: any = {};
+        if (genreParam) {
+            const genreUnquoted = genreParam.replace(/^"(.*)"$/, "$1")
+            if (genreUnquoted && genreUnquoted !== "All"){
+                query.genre = genreUnquoted;
+            }
+        }
+        const books = await Book.find(query).sort({ createdAt: -1 });
 
         return Response.json({ books }, { status: 200 });
     } catch (error) {
