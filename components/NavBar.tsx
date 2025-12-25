@@ -1,7 +1,7 @@
 "use client"
 import { Button } from '@/components/ui/button';
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
-import { BookKey, BookOpen, Compass, Library, Plus } from 'lucide-react';
+import { BookKey, BookOpen, BookPlus, Compass, Library, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React from 'react';
@@ -32,6 +32,9 @@ const NavBar = () => {
                         <Button variant={isActive("/add-book") ? "default" : "ghost"} size="sm" asChild
                         ><Link href="/add-book" className='gap-2'><Plus className='w-4 h-4' />
                                 <span className='hidden sm:inline'>Add Book</span></Link></Button>
+                        <Button variant={isActive("/my-books") ? "default" : "ghost"} size="sm" asChild
+                        ><Link href="/my-books" className='gap-2'><BookPlus className='w-4 h-4' />
+                                <span className='hidden sm:inline'>My Books</span></Link></Button>
                         <Button variant={isActive("/library") ? "default" : "ghost"} size="sm" asChild
                         ><Link href="/library" className='gap-2'><Library className='w-4 h-4' />
                                 <span className='hidden sm:inline'>Library</span></Link></Button>
