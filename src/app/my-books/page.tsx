@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,11 +10,47 @@ import { Pencil, Trash2, Loader2, Plus } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
 
+
 const MyBooksPage = () => {
     const [books, setBooks] = useState<Book[]>([]);
     const [loading, setLoading] = useState(true);
     const { isLoaded, isSignedIn, userId, getToken } = useAuth();
+    const handleDeleteBook = async (bookId: string) => {
+        const result = await Swal.fire({
+            title: "Are you sure?",
+            text: "This book will be permanently deleted.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#7C2D12",
+            cancelButtonColor: "#9CA3AF",
+            confirmButtonText: "Yes, delete it",
+            cancelButtonText: "Cancel",
+        });
 
+        if (!result.isConfirmed) return;
+
+        try {
+            await axios.delete(`/api/books/delete/${bookId}`, {
+                withCredentials: true,
+            });
+            setBooks((prev) => prev.filter((b) => b._id !== bookId));
+            Swal.fire({
+                title: "Deleted!",
+                text: "The book has been deleted successfully.",
+                icon: "success",
+                timer: 1800,
+                showConfirmButton: false,
+            });
+
+        } catch (error) {
+            console.error(error);
+            Swal.fire({
+                title: "Error",
+                text: "Failed to delete the book. Please try again.",
+                icon: "error",
+            });
+        }
+    };
     useEffect(() => {
         if (!isLoaded) return;
 
@@ -154,7 +191,12 @@ const MyBooksPage = () => {
                                                     </Link>
                                                 </Button>
 
-                                                <Button size="sm" variant="destructive" className="gap-1 active:scale-95 cursor-pointer">
+                                                <Button
+                                                    size="sm"
+                                                    variant="destructive"
+                                                    className="gap-1 active:scale-95 cursor-pointer"
+                                                    onClick={() => handleDeleteBook(book._id)}
+                                                >
                                                     <Trash2 className="w-4 h-4" />
                                                 </Button>
                                             </div>
