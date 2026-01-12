@@ -1,9 +1,52 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { User, Calendar, BookOpen, Globe, RefreshCcw, BookPlus } from "lucide-react";
+import { User, Calendar, BookOpen, Globe, RefreshCcw, BookmarkCheck, BookmarkPlus, Loader2 } from "lucide-react";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { Button } from "@/components/ui/button";
 
-const BookDetails = ({ title, author, cover, genre, summary, pages, language, addedBy, createdAt, updatedAt, }: Book) => {
+const BookDetails = ({ _id, title, author, cover, genre, summary, pages, language, addedBy, createdAt, updatedAt, }: Book) => {
+    const [loading, setLoading] = useState(false);
+    const [added, setAdded] = useState(false);
+    const [checking, setChecking] = useState(true);
+    useEffect(() => {
+
+        if (!_id) return;
+        setChecking(true);
+
+        const checkStatus = async () => {
+            try {
+                const res = await axios.get(`/api/library/status/${_id}`);
+                setAdded(Boolean(res.data.added));
+            } catch {
+                setAdded(false);
+            } finally {
+                setChecking(false);
+            }
+        };
+
+        checkStatus();
+    }, [_id]);
+
+    const handleAddToLibrary = async () => {
+        if (added) return;
+
+        try {
+            setLoading(true);
+            await axios.post("/api/library/add", { bookId: _id });
+            setAdded(true);
+            toast.success("Added to your library 📚");
+        } catch (error: any) {
+            if (error.response?.status === 409) {
+                setAdded(true);
+            } else {
+                toast.error("Failed to add book");
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
     return (
         <section className="min-h-screen bg-gradient-to-b from-[#FAF7F3] via-[#F4EFE9] to-[#EFE7DE]">
             <div className="max-w-6xl mx-auto px-5 py-20 space-y-16">
@@ -18,21 +61,37 @@ const BookDetails = ({ title, author, cover, genre, summary, pages, language, ad
                                 priority
                             />
                         </div>
-                        <button
+                        <Button
                             type="button"
-                            className="
-                            w-full flex items-center justify-center  gap-2
-                            rounded-lg border border-[#D6C7B7]
-                            bg-white/70 backdrop-blur
-                            px-4 py-3 text-sm font-medium
-                            text-[#6B4F3F] hover:cursor-pointer
-                            hover:bg-[#6B4F3F] hover:text-white
-                            active:scale-95 transition-all
-                            "
+                            className={`
+                                        w-full flex items-center justify-center gap-2
+                                        rounded-lg border border-[#D6C7B7]
+                                        backdrop-blur
+                                        px-4 py-3 text-sm font-medium
+                                        hover:cursor-pointer
+                                        hover:bg-[#6B4F3F] hover:text-white
+                                        active:scale-95 transition-all
+                                        ${added
+                                    ? 'bg-[#6B4F3F] text-white'
+                                    : 'bg-white/70 text-[#6B4F3F]'}
+`}
+                            onClick={handleAddToLibrary}
+                            disabled={loading || added}
                         >
-                            <BookPlus className="w-4 h-4" />
-                            Add to My Library
-                        </button>
+                            {checking ? <Loader2 className="w-4 h-4 animate-spin" /> : added ? (
+                                <>
+                                    <BookmarkCheck className="w-4 h-4" />
+                                    Already in your library
+                                </>
+                            ) : loading ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <>
+                                    <BookmarkPlus className="w-4 h-4" />
+                                    Add to Library
+                                </>
+                            )}
+                        </Button>
                     </div>
 
                     <div className="md:col-span-8 space-y-6">
