@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import axios from 'axios';
 import { Funnel, Loader2 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import BookCard from '../../../components/BookCard';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
@@ -13,7 +13,7 @@ const popularGenres = [
     "Psychology", "Self-Help",
 ] as const;
 
-const ExplorePage = () => {
+const ExploreContent = () => {
     const searchParams = useSearchParams();
     const [selectedGenre, setSelectedGenre] = useState(() => {
         const gp = searchParams.get("genre");
@@ -107,6 +107,21 @@ const ExplorePage = () => {
                 )}
             </div>
         </section>
+    );
+};
+
+const ExplorePage = () => {
+    return (
+        <Suspense fallback={
+            <section className="min-h-screen bg-gradient-to-b from-[#FAF7F3] via-[#F4EFE9] to-[#EFE7DE]">
+                <div className="max-w-7xl mx-auto px-5 py-16 flex flex-col items-center justify-center">
+                    <Loader2 className="animate-spin w-9 h-9 mb-4 text-[#847062]" />
+                    <p className="text-[#847062]">Loading explore page...</p>
+                </div>
+            </section>
+        }>
+            <ExploreContent />
+        </Suspense>
     );
 };
 

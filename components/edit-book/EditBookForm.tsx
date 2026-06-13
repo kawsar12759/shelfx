@@ -154,8 +154,8 @@ const EditBookForm = ({ bookId }: { bookId: string }) => {
         const fd = new FormData();
 
         Object.entries(formData).forEach(([key, value]) => {
-            if (key === "genre") {
-                value.forEach((g) => fd.append("genre[]", g));
+            if (key === "genre" && value !== null) {
+                (value as string[]).forEach((g) => fd.append("genre[]", g));
             } else if (value !== null) {
                 fd.append(key, value as string | Blob);
             }
