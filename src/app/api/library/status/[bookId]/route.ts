@@ -18,7 +18,6 @@ export async function GET(
         if (!userId) {
             return NextResponse.json({ added: false });
         }
-        console.log(bookId, "aaa");
         if (!mongoose.Types.ObjectId.isValid(bookId)) {
             return NextResponse.json({ added: false });
         }
@@ -29,7 +28,6 @@ export async function GET(
             userId,
             book:bookId,
         }).lean();
-        console.log(exists,"sass")
         return NextResponse.json({ added: !!exists });
     } catch (err) {
         console.error("Library status error:", err);

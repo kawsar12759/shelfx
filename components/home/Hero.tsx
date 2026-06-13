@@ -10,12 +10,7 @@ const Hero = () => {
             <div className="absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-[#EADFD3]/40 blur-3xl" />
             <div className="relative container mx-auto px-4 py-24">
                 <div className="max-w-4xl mx-auto text-center space-y-6">
-                    <div className="flex justify-center">
-                        <span className="inline-flex items-center gap-2 rounded-full border border-[#DAD3C8] bg-white/70 px-4 py-1.5 text-sm font-medium text-[#6B4F3F] shadow-sm backdrop-blur">
-                            <span className="h-2 w-2 rounded-full bg-[#6B4F3F]" />
-                            A digital sanctuary for readers
-                        </span>
-                    </div>
+                    
                     <h1 className="mt-6 text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-foreground">
                         Welcome to{" "}
                         <span className="relative inline-block">
