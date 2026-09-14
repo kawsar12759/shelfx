@@ -1,157 +1,133 @@
-import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { Badge } from "@/components/ui/badge";
-import { User, Calendar, BookOpen, Globe, RefreshCcw, BookmarkCheck, BookmarkPlus, Loader2 } from "lucide-react";
-import axios from "axios";
-import { toast } from "react-toastify";
+import Link from "next/link";
+import { ArrowLeft, BookOpen, Calendar, Globe, Pencil, Star, User, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatDate } from "@/lib/utils";
+import BookCard from "./BookCard";
+import LibraryControls from "./book/LibraryControls";
+import Reviews from "./book/Reviews";
 
-const BookDetails = ({ _id, title, author, cover, genre, summary, pages, language, addedBy, createdAt, updatedAt, }: Book) => {
-    const [loading, setLoading] = useState(false);
-    const [added, setAdded] = useState(false);
-    const [checking, setChecking] = useState(true);
-    useEffect(() => {
+type BookDetailsProps = {
+    book: Book;
+    similar: Book[];
+    isOwner: boolean;
+};
 
-        if (!_id) return;
-        setChecking(true);
+const BookDetails = ({ book, similar, isOwner }: BookDetailsProps) => {
+    const { _id, title, author, cover, genre, summary, pages, language, publishedYear, addedBy, createdAt } = book;
+    const ratingAvg = book.ratingAvg ?? 0;
+    const ratingCount = book.ratingCount ?? 0;
+    const readersCount = book.readersCount ?? 0;
+    const genres = Array.isArray(genre) ? genre : [genre];
 
-        const checkStatus = async () => {
-            try {
-                const res = await axios.get(`/api/library/status/${_id}`);
-                setAdded(Boolean(res.data.added));
-            } catch {
-                setAdded(false);
-            } finally {
-                setChecking(false);
-            }
-        };
+    const facts = [
+        { icon: BookOpen, label: "Pages", value: pages },
+        { icon: Calendar, label: "Published", value: publishedYear },
+        { icon: Globe, label: "Language", value: language },
+        { icon: Users, label: "On shelves", value: readersCount },
+    ];
 
-        checkStatus();
-    }, [_id]);
-
-    const handleAddToLibrary = async () => {
-        if (added) return;
-
-        try {
-            setLoading(true);
-            await axios.post("/api/library/add", { bookId: _id });
-            setAdded(true);
-            toast.success("Added to your library 📚");
-        } catch (error: any) {
-            if (error.response?.status === 409) {
-                setAdded(true);
-            } else {
-                toast.error("Failed to add book");
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
     return (
-        <section className="min-h-screen bg-gradient-to-b from-[#FAF7F3] via-[#F4EFE9] to-[#EFE7DE]">
-            <div className="max-w-6xl mx-auto px-5 py-20 space-y-16">
+        <section className="min-h-screen bg-linear-to-b from-paper via-[#F4EFE9] to-[#EFE7DE]">
+            <div className="mx-auto max-w-6xl space-y-20 px-5 py-10 md:py-14">
+                <div className="space-y-6">
+                    <Link href="/explore" className="inline-flex items-center gap-1.5 text-sm text-ink-muted transition-colors hover:text-ink">
+                        <ArrowLeft className="h-4 w-4" /> Back to explore
+                    </Link>
 
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
-                    <div className="md:col-span-4 space-y-4">
-                        <div className="relative w-full aspect-[3/4] overflow-hidden rounded-lg shadow-xl">
-                            <Image
-                                src={cover}
-                                alt={title}
-                                fill
-                                priority
-                            />
+                    <div className="grid grid-cols-1 gap-10 md:grid-cols-12 md:gap-12">
+                        <div className="mx-auto w-full max-w-xs space-y-5 md:col-span-4 md:max-w-none">
+                            <div className="relative aspect-2/3 w-full overflow-hidden rounded-lg shadow-[0_20px_40px_-12px_rgba(74,52,40,0.45)]">
+                                <Image src={cover} alt={`Cover of ${title}`} fill priority sizes="(min-width: 768px) 360px, 80vw" className="object-cover" />
+                            </div>
+                            <LibraryControls bookId={_id} totalPages={pages} />
                         </div>
-                        <Button
-                            type="button"
-                            className={`
-                                        w-full flex items-center justify-center gap-2
-                                        rounded-lg border border-[#D6C7B7]
-                                        backdrop-blur
-                                        px-4 py-3 text-sm font-medium
-                                        hover:cursor-pointer
-                                        hover:bg-[#6B4F3F] hover:text-white
-                                        active:scale-95 transition-all
-                                        ${added
-                                    ? 'bg-[#6B4F3F] text-white'
-                                    : 'bg-white/70 text-[#6B4F3F]'}
-`}
-                            onClick={handleAddToLibrary}
-                            disabled={loading || added}
-                        >
-                            {checking ? <Loader2 className="w-4 h-4 animate-spin" /> : added ? (
-                                <>
-                                    <BookmarkCheck className="w-4 h-4" />
-                                    Already in your library
-                                </>
-                            ) : loading ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                                <>
-                                    <BookmarkPlus className="w-4 h-4" />
-                                    Add to Library
-                                </>
-                            )}
-                        </Button>
-                    </div>
-
-                    <div className="md:col-span-8 space-y-6">
-                        <div className="space-y-2">
-                            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-[#6B4F3F]">
-                                {title}
-                            </h1>
-                            <p className="text-lg text-[#847062] flex items-center gap-2">
-                                <User className="w-4 h-4" />
-                                {author}
-                            </p>
+    
+                        <div className="space-y-7 md:col-span-8">
+                            <div className="space-y-3">
+                                <div className="flex flex-wrap gap-2">
+                                    {genres.map((g) => (
+                                        <Link
+                                            key={g}
+                                            href={`/explore?genre=${encodeURIComponent(g)}`}
+                                            className="rounded-full bg-sand px-3 py-1 text-xs font-medium text-ink transition-colors hover:bg-[#DCC9B5]"
+                                        >
+                                            {g}
+                                        </Link>
+                                    ))}
+                                </div>
+                                <h1 className="text-4xl font-extrabold tracking-tight text-ink md:text-5xl">{title}</h1>
+                                <p className="flex items-center gap-2 text-lg text-ink-muted">
+                                    <User className="h-4 w-4" />
+                                    by{" "}
+                                    <Link href={`/explore?q=${encodeURIComponent(author)}`} className="font-medium text-ink underline-offset-4 hover:underline">
+                                        {author}
+                                    </Link>
+                                </p>
+                                <a href="#reviews" className="inline-flex items-center gap-2 text-sm text-ink-muted hover:text-ink">
+                                    <Star className={`h-4 w-4 ${ratingCount ? "fill-gold text-gold" : ""}`} />
+                                    {ratingCount ? (
+                                        <>
+                                            <span className="font-semibold text-ink">{ratingAvg.toFixed(1)}</span> · {ratingCount}{" "}
+                                            {ratingCount === 1 ? "rating" : "ratings"}
+                                        </>
+                                    ) : (
+                                        "No ratings yet — be the first"
+                                    )}
+                                </a>
+                            </div>
+    
+                            <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                                {facts.map(({ icon: Icon, label, value }) => (
+                                    <div key={label} className="rounded-xl border border-line/80 bg-white/60 px-4 py-3">
+                                        <dt className="flex items-center gap-1.5 text-xs text-ink-muted">
+                                            <Icon className="h-3.5 w-3.5" /> {label}
+                                        </dt>
+                                        <dd className="mt-1 font-serif text-lg font-bold text-ink">{value}</dd>
+                                    </div>
+                                ))}
+                            </dl>
+    
+                            <div className="space-y-3">
+                                <h2 className="text-xl font-bold text-ink">About this book</h2>
+                                <p className="whitespace-pre-line text-base leading-relaxed text-[#5E4B3F]">{summary}</p>
+                            </div>
+    
+                            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line/70 pt-5 text-sm text-ink-muted">
+                                <p>
+                                    Added by <span className="font-semibold text-ink">{addedBy?.firstName}</span> on {formatDate(createdAt)}
+                                </p>
+                                {isOwner && (
+                                    <Button asChild size="sm" variant="outline">
+                                        <Link href={`/edit-book/${_id}`}>
+                                            <Pencil className="h-4 w-4" /> Edit book
+                                        </Link>
+                                    </Button>
+                                )}
+                            </div>
                         </div>
-
-                        <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-[#847062]">
-                            <span className="flex items-center gap-1">
-                                <BookOpen className="w-4 h-4" /> {pages} pages
-                            </span>
-                            <span className="flex items-center gap-1">
-                                <Globe className="w-4 h-4" /> {language}
-                            </span>
-                            <span className="flex items-center gap-1">
-                                <Calendar className="w-4 h-4" />
-                                Added on {new Date(createdAt).toLocaleDateString()}
-                            </span>
-                            <span className="flex items-center gap-1">
-                                <RefreshCcw className="w-4 h-4" />
-                                Updated on {new Date(updatedAt).toLocaleDateString()}
-                            </span>
-                        </div>
-
-                        <div className="flex flex-wrap gap-2 pt-2">
-                            {(Array.isArray(genre) ? genre : [genre]).map((g, i) => (
-                                <Badge
-                                    key={i}
-                                    variant="secondary"
-                                    className="bg-[#E6D8C8] text-[#6B4F3F] rounded-full px-3 py-1 text-xs"
-                                >
-                                    {g}
-                                </Badge>
-                            ))}
-                        </div>
-
-                        <div className="h-px bg-[#DAD3C8]/70 w-full" />
-
-                        <div className="space-y-3 max-w-3xl">
-                            <h2 className="text-lg font-semibold text-[#6B4F3F]">
-                                About this book
-                            </h2>
-                            <p className="text-[#847062] leading-relaxed text-base">
-                                {summary}
-                            </p>
-                        </div>
-                        <div className="h-px bg-[#DAD3C8]/70 w-full" />
-                        {addedBy && (
-                            <p className="text-sm text-[#847062] italic pt-2">
-                                Added by <span className="font-semibold">{addedBy.firstName}</span>
-                            </p>
-                        )}
                     </div>
                 </div>
+
+                <div id="reviews" className="scroll-mt-24">
+                    <Reviews bookId={_id} />
+                </div>
+
+                {similar.length > 0 && (
+                    <section className="space-y-6">
+                        <div className="flex items-end justify-between gap-4">
+                            <h2 className="text-3xl font-bold text-ink">You might also like</h2>
+                            <Link href={`/explore?genre=${encodeURIComponent(genres[0])}`} className="text-sm font-medium text-ink-muted hover:text-ink">
+                                More {genres[0]} →
+                            </Link>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4">
+                            {similar.map((b) => (
+                                <BookCard key={b._id} {...b} />
+                            ))}
+                        </div>
+                    </section>
+                )}
             </div>
         </section>
     );

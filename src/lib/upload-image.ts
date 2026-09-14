@@ -1,8 +1,16 @@
 import cloudinary from "./cloudinary";
+import { MAX_COVER_BYTES } from "./limits";
 
 interface UploadResult {
     secure_url: string;
-    [key: string]: any;
+    [key: string]: unknown;
+}
+
+/** Returns an error message if the file is not an acceptable cover image. */
+export function validateCover(file: File): string | null {
+    if (!file.type.startsWith("image/")) return "Cover must be an image file";
+    if (file.size > MAX_COVER_BYTES) return "Cover image must be 5MB or smaller";
+    return null;
 }
 
 export const UploadImage = async (file: File, folder: string): Promise<UploadResult> => {
@@ -13,7 +21,7 @@ export const UploadImage = async (file: File, folder: string): Promise<UploadRes
         cloudinary.uploader
             .upload_stream(
                 {
-                    resource_type: "auto",
+                    resource_type: "image",
                     folder: folder,
                 },
 

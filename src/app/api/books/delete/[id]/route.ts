@@ -3,7 +3,10 @@ export const dynamic = "force-dynamic";
 
 import { auth } from "@clerk/nextjs/server";
 import { connectToDatabase } from "@/lib/connectToDB";
+import { isValidId } from "@/lib/queries";
 import Book from "../../../../../../models/book";
+import Library from "../../../../../../models/library";
+import Review from "../../../../../../models/review";
 import { NextResponse } from "next/server";
 
 
@@ -19,8 +22,8 @@ export async function DELETE(
 
     const { id } = await context.params;
 
-    if (!id) {
-        return NextResponse.json({ error: "Book ID missing" }, { status: 400 });
+    if (!isValidId(id)) {
+        return NextResponse.json({ error: "Invalid book ID" }, { status: 400 });
     }
 
     await connectToDatabase();
@@ -37,7 +40,12 @@ export async function DELETE(
         );
     }
 
-    await Book.deleteOne({ _id: id });
+    // Remove the book along with every shelf entry and review that points at it
+    await Promise.all([
+        Book.deleteOne({ _id: id }),
+        Library.deleteMany({ book: id }),
+        Review.deleteMany({ book: id }),
+    ]);
 
     return NextResponse.json({ message: "Book deleted successfully" });
 }

@@ -1,15 +1,12 @@
-import { connectToDatabase } from "@/lib/connectToDB";
-import Book from "../../../../../models/book";
+import { getBookById } from "@/lib/queries";
 
 export async function GET(
     request: Request,
     { params }: { params: Promise<{ bookId: string }> }
 ) {
     try {
-        const bookId = (await params).bookId;
-        await connectToDatabase();
-
-        const book = await Book.findById(bookId);
+        const { bookId } = await params;
+        const book = await getBookById(bookId);
 
         if (!book) {
             return Response.json({ error: "Book not found" }, { status: 404 });

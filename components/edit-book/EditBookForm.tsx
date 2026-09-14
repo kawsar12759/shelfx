@@ -12,14 +12,9 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
+import { GENRES } from "@/lib/genres";
+import { MAX_COVER_BYTES } from "@/lib/limits";
 
-const popularGenres = [
-    "Classic", "Fiction", "Romance", "Drama", "Gothic",
-    "Dystopian", "Adventure", "Poetry", "Mystery",
-    "Fantasy", "History", "Science Fiction", "Thriller",
-    "Horror", "Non-Fiction", "Biography", "Philosophy",
-    "Psychology", "Self-Help",
-];
 
 type FormDataState = {
     title: string;
@@ -62,7 +57,6 @@ const EditBookForm = ({ bookId }: { bookId: string }) => {
             try {
                 const res = await axios.get(`/api/books/${bookId}`);
                 const book = res.data;
-                console.log(res);
                 setFormData({
                     title: book.title,
                     author: book.author,
@@ -130,6 +124,7 @@ const EditBookForm = ({ bookId }: { bookId: string }) => {
         if (!year || year < 1000) e.publishedYear = "Invalid year";
         if (!pages || pages <= 0) e.pages = "Invalid pages";
         if (!formData.language.trim()) e.language = "Language required";
+        if (formData.cover && formData.cover.size > MAX_COVER_BYTES) e.cover = "Cover image must be 5MB or smaller";
 
         setErrors(e);
         return Object.keys(e).length === 0;
@@ -170,9 +165,10 @@ const EditBookForm = ({ bookId }: { bookId: string }) => {
                 timer: 1800,
                 showConfirmButton: false,
             });
-            router.push("/my-books");
-        } catch {
-            toast.error("Failed to update book");
+            router.push(`/book/${bookId}`);
+        } catch (error) {
+            const message = axios.isAxiosError(error) ? error.response?.data?.error : null;
+            toast.error(message || "Failed to update book");
         } finally {
             setSaving(false);
         }
@@ -267,7 +263,7 @@ const EditBookForm = ({ bookId }: { bookId: string }) => {
                     <div className="space-y-3">
                         <Label className="font-semibold text-lg text-[#333]">Genre *</Label>
                         <div className="flex flex-wrap gap-2">
-                            {popularGenres.map((genre) => (
+                            {GENRES.map((genre) => (
                                 <Button
                                     key={genre}
                                     type="button"
@@ -313,7 +309,7 @@ const EditBookForm = ({ bookId }: { bookId: string }) => {
                             id="publishedYear"
                             name="publishedYear"
                             type="number"
-                            placeholder="Enter Publlication Year"
+                            placeholder="e.g. 1954"
                             min={1000}
                             max={new Date().getFullYear()}
                             className="h-12 text-base focus-visible:ring-2 focus-visible:ring-[#6B4F3F]/70 focus-visible:ring-offset-2"
@@ -361,10 +357,15 @@ const EditBookForm = ({ bookId }: { bookId: string }) => {
                         )}
                     </div>
 
-                    <Button className="w-full cursor-pointer active:scale-95" disabled={saving}>
-                        <BookPlus className={`w-5 h-5 mr-2 ${saving && "animate-spin"}`} />
-                        {saving ? "Updating..." : "Update Book"}
-                    </Button>
+                    <div className="flex flex-col-reverse gap-3 sm:flex-row">
+                        <Button type="button" variant="outline" className="cursor-pointer sm:w-40" onClick={() => router.back()}>
+                            Cancel
+                        </Button>
+                        <Button type="submit" className="flex-1 cursor-pointer active:scale-95" disabled={saving}>
+                            {saving ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <BookPlus className="w-5 h-5 mr-2" />}
+                            {saving ? "Updating..." : "Update Book"}
+                        </Button>
+                    </div>
                 </form>
             </Card>
         </div>

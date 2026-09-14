@@ -12,9 +12,15 @@ const BookSchema = new mongoose.Schema({
     addedBy: {
         id: { type: String, required: true },
         firstName: { type: String, required: true },
-    }
+    },
+    // Denormalized counters, kept in sync by the review and library routes
+    ratingAvg: { type: Number, default: 0 },
+    ratingCount: { type: Number, default: 0 },
+    readersCount: { type: Number, default: 0 },
 }, { timestamps: true });
 
+BookSchema.index({ createdAt: -1 });
+BookSchema.index({ genre: 1 });
 
 const Book = mongoose.models.Book || mongoose.model("Book", BookSchema);
 

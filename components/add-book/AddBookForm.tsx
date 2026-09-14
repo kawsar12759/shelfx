@@ -8,29 +8,11 @@ import axios from "axios";
 import { BookPlus } from "lucide-react";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import { toast } from "react-toastify"; // Importing toast
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
+import { GENRES } from "@/lib/genres";
+import { MAX_COVER_BYTES } from "@/lib/limits";
 
-const popularGenres = [
-  "Classic",
-  "Fiction",
-  "Romance",
-  "Drama",
-  "Gothic",
-  "Dystopian",
-  "Adventure",
-  "Poetry",
-  "Mystery",
-  "Fantasy",
-  "History",
-  "Science Fiction",
-  "Thriller",
-  "Horror",
-  "Non-Fiction",
-  "Biography",
-  "Philosophy",
-  "Psychology",
-  "Self-Help",
-] as const;
 
 type FormDataState = {
   title: string;
@@ -46,6 +28,7 @@ type FormDataState = {
 type ErrorsState = Partial<Record<keyof FormDataState, string>>;
 
 const AddBookForm = () => {
+  const router = useRouter();
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -130,6 +113,7 @@ const AddBookForm = () => {
     if (!formData.title.trim()) nextErrors.title = "Book title is required";
     if (!formData.author.trim()) nextErrors.author = "Author name is required";
     if (!formData.cover) nextErrors.cover = "Cover image is required";
+    else if (formData.cover.size > MAX_COVER_BYTES) nextErrors.cover = "Cover image must be 5MB or smaller";
     if (formData.genre.length === 0) nextErrors.genre = "At least one genre is required";
     if (!formData.summary.trim()) nextErrors.summary = "Summary is required";
 
@@ -168,16 +152,14 @@ const AddBookForm = () => {
       fd.append("genre[]", g);
     });
     if (formData.cover) fd.append("cover", formData.cover);
-    for (const [key, value] of fd.entries()) {
-      console.log(key, value);
-    }
     try {
-      await axios.post("/api/books", fd, {
+      const res = await axios.post("/api/books", fd, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
       toast.success("Book added successfully!");
+      router.push(`/book/${res.data.book._id}`);
       setFormData({
         title: "",
         author: "",
@@ -190,8 +172,8 @@ const AddBookForm = () => {
       });
       setCoverPreview(null);
     } catch (error) {
-      console.error("Error adding Book:", error);
-      toast.error("Error adding book. Please try again.");
+      const message = axios.isAxiosError(error) ? error.response?.data?.error : null;
+      toast.error(message || "Error adding book. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -279,7 +261,7 @@ const AddBookForm = () => {
           <div className="space-y-3">
             <Label className="font-semibold text-lg text-[#333]">Genre *</Label>
             <div className="flex flex-wrap gap-2">
-              {popularGenres.map((genre) => (
+              {GENRES.map((genre) => (
                 <Button
                   key={genre}
                   type="button"
@@ -325,7 +307,7 @@ const AddBookForm = () => {
               id="publishedYear"
               name="publishedYear"
               type="number"
-              placeholder="Enter Publlication Year"
+              placeholder="e.g. 1954"
               min={1000}
               max={new Date().getFullYear()}
               className="h-12 text-base focus-visible:ring-2 focus-visible:ring-[#6B4F3F]/70 focus-visible:ring-offset-2"

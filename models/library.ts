@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+export const READING_STATUSES = ["want-to-read", "reading", "finished"] as const;
+
 const LibrarySchema = new mongoose.Schema(
     {
         userId: {
@@ -16,6 +18,18 @@ const LibrarySchema = new mongoose.Schema(
             required: true,
             index: true,
         },
+        status: {
+            type: String,
+            enum: READING_STATUSES,
+            default: "want-to-read",
+        },
+        currentPage: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
+        startedAt: { type: Date },
+        finishedAt: { type: Date },
     },
     { timestamps: true }
 );

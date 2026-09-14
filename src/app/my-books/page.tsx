@@ -6,19 +6,20 @@ import Swal from "sweetalert2";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Trash2, Loader2, Plus } from "lucide-react";
+import { Pencil, Trash2, Loader2, Plus, Eye, Star, Users } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
+import { formatDate } from "@/lib/utils";
 
 
 const MyBooksPage = () => {
     const [books, setBooks] = useState<Book[]>([]);
     const [loading, setLoading] = useState(true);
-    const { isLoaded, isSignedIn, userId, getToken } = useAuth();
+    const { isLoaded, isSignedIn, userId } = useAuth();
     const handleDeleteBook = async (bookId: string) => {
         const result = await Swal.fire({
             title: "Are you sure?",
-            text: "This book will be permanently deleted.",
+            text: "This book, its reviews and every shelf entry for it will be permanently deleted.",
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#7C2D12",
@@ -59,16 +60,9 @@ const MyBooksPage = () => {
             setLoading(false);
             return;
         }
-        console.log(userId);
-
         const fetchMyBooks = async () => {
             try {
-                console.log('after', userId);
                 setLoading(true);
-
-                const token = await getToken();
-                if (!token) throw new Error("No token");
-
                 const res = await axios.get("/api/books/my-books", { withCredentials: true });
 
                 setBooks(res.data.books ?? []);
@@ -81,15 +75,15 @@ const MyBooksPage = () => {
         };
 
         fetchMyBooks();
-    }, [isLoaded, isSignedIn, userId, getToken]);
+    }, [isLoaded, isSignedIn, userId]);
 
 
     return (
-        <section className="min-h-screen bg-gradient-to-b from-[#FAF7F3] via-[#F4EFE9] to-[#EFE7DE]">
+        <section className="min-h-screen bg-linear-to-b from-paper via-[#F4EFE9] to-[#EFE7DE]">
             <div className="max-w-7xl mx-auto px-5 py-16 space-y-12">
                 <header className="max-w-3xl space-y-3">
-                    <h1 className="text-4xl font-extrabold tracking-tight text-[#6B4F3F]">
-                        Your Added Books
+                    <h1 className="text-4xl font-extrabold tracking-tight text-ink md:text-5xl">
+                        Books You&apos;ve Added
                     </h1>
                     <p className="text-[#847062] text-lg leading-relaxed">
                         Manage the books you’ve added to ShelfX. Edit details or remove entries anytime.
@@ -121,6 +115,7 @@ const MyBooksPage = () => {
                                     <th className="px-4 py-3 font-semibold">Book</th>
                                     <th className="px-4 py-3 font-semibold">Author</th>
                                     <th className="px-4 py-3 font-semibold hidden md:table-cell">Genres</th>
+                                    <th className="px-4 py-3 font-semibold hidden sm:table-cell">Rating</th>
                                     <th className="px-4 py-3 font-semibold hidden lg:table-cell">Added</th>
                                     <th className="px-4 py-3 font-semibold text-center">Actions</th>
                                 </tr>
@@ -144,9 +139,9 @@ const MyBooksPage = () => {
                                                     />
                                                 </div>
                                                 <div className="max-w-xs">
-                                                    <p className="font-semibold text-[#6B4F3F] line-clamp-2">
+                                                    <Link href={`/book/${book._id}`} className="font-semibold text-[#6B4F3F] line-clamp-2 hover:underline">
                                                         {book.title}
-                                                    </p>
+                                                    </Link>
                                                 </div>
                                             </div>
                                         </td>
@@ -172,9 +167,22 @@ const MyBooksPage = () => {
                                             </div>
                                         </td>
 
+                                        {/* Rating + readers */}
+                                        <td className="px-4 py-4 text-sm text-[#847062] hidden sm:table-cell">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="flex items-center gap-1">
+                                                    <Star className={`w-3.5 h-3.5 ${book.ratingCount ? "fill-gold text-gold" : ""}`} />
+                                                    {book.ratingCount ? `${book.ratingAvg?.toFixed(1)} (${book.ratingCount})` : "—"}
+                                                </span>
+                                                <span className="flex items-center gap-1 text-xs">
+                                                    <Users className="w-3.5 h-3.5" /> {book.readersCount ?? 0} shelved
+                                                </span>
+                                            </div>
+                                        </td>
+
                                         {/* Added */}
                                         <td className="px-4 py-4 text-sm text-[#847062] hidden lg:table-cell">
-                                            {new Date(book.createdAt).toLocaleDateString()}
+                                            {formatDate(book.createdAt)}
                                         </td>
 
                                         {/* Actions */}
@@ -182,11 +190,21 @@ const MyBooksPage = () => {
                                             <div className="flex justify-center gap-2">
                                                 <Button
                                                     size="sm"
+                                                    variant="ghost"
+                                                    asChild
+                                                    className="text-[#6B4F3F]"
+                                                >
+                                                    <Link href={`/book/${book._id}`} aria-label={`View ${book.title}`}>
+                                                        <Eye className="w-4 h-4" />
+                                                    </Link>
+                                                </Button>
+                                                <Button
+                                                    size="sm"
                                                     variant="outline"
                                                     asChild
                                                     className="cursor-pointer active:scale-95  gap-1 text-[#6B4F3F]"
                                                 >
-                                                    <Link href={`/edit-book/${book._id}`}>
+                                                    <Link href={`/edit-book/${book._id}`} aria-label={`Edit ${book.title}`}>
                                                         <Pencil className="w-4 h-4" />
                                                     </Link>
                                                 </Button>
@@ -196,6 +214,7 @@ const MyBooksPage = () => {
                                                     variant="destructive"
                                                     className="gap-1 active:scale-95 cursor-pointer"
                                                     onClick={() => handleDeleteBook(book._id)}
+                                                    aria-label={`Delete ${book.title}`}
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </Button>

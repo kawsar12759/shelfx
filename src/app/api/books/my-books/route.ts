@@ -9,7 +9,6 @@ import Book from "../../../../../models/book";
 export async function GET() {
   try {
     const { userId } = await auth();
-    console.log(userId);
     if (!userId) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }

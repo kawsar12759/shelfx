@@ -4,8 +4,9 @@ export const dynamic = "force-dynamic";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/connectToDB";
+import { isValidId, serialize } from "@/lib/queries";
 import Book from "../../../../../models/book";
-import library from "../../../../../models/library";
+import library, { READING_STATUSES } from "../../../../../models/library";
 
 
 export async function POST(req: Request) {
@@ -16,14 +17,16 @@ export async function POST(req: Request) {
     }
 
     const user = await currentUser();
-    const { bookId } = await req.json();
+    const { bookId, status } = await req.json();
 
-    if (!bookId) {
+    if (!isValidId(bookId)) {
       return NextResponse.json(
-        { error: "Book ID is required" },
+        { error: "A valid book ID is required" },
         { status: 400 }
       );
     }
+
+    const initialStatus = READING_STATUSES.includes(status) ? status : "want-to-read";
 
     await connectToDatabase();
 
@@ -38,25 +41,32 @@ export async function POST(req: Request) {
     const alreadyAdded = await library.findOne({
       userId,
       book: bookId,
-    });
+    }).lean();
 
     if (alreadyAdded) {
       return NextResponse.json(
-        { message: "Book already in library" },
+        { message: "Book already in library", entry: serialize(alreadyAdded) },
         { status: 200 }
       );
     }
 
+    const now = new Date();
     const libraryItem = await library.create({
       userId,
-      userName: `${user?.firstName ?? ""} ${user?.lastName ?? ""}`,
+      userName: `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim(),
       book: bookId,
+      status: initialStatus,
+      startedAt: initialStatus !== "want-to-read" ? now : undefined,
+      finishedAt: initialStatus === "finished" ? now : undefined,
+      currentPage: initialStatus === "finished" ? bookExists.pages : 0,
     });
+
+    await Book.updateOne({ _id: bookId }, { $inc: { readersCount: 1 } });
 
     return NextResponse.json(
       {
         message: "Book added to library",
-        libraryItem,
+        entry: serialize(libraryItem),
       },
       { status: 201 }
     );

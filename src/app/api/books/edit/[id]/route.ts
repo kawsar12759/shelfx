@@ -5,7 +5,8 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/connectToDB";
 import Book from "../../../../../../models/book";
-import { UploadImage } from "@/lib/upload-image";
+import { UploadImage, validateCover } from "@/lib/upload-image";
+import { isValidId } from "@/lib/queries";
 
 
 export async function PATCH(
@@ -19,8 +20,8 @@ export async function PATCH(
     }
 
     const { id } = await context.params;
-    if (!id) {
-      return NextResponse.json({ error: "Book ID missing" }, { status: 400 });
+    if (!isValidId(id)) {
+      return NextResponse.json({ error: "Invalid book ID" }, { status: 400 });
     }
 
     const formData = await req.formData();
@@ -66,6 +67,10 @@ export async function PATCH(
     if (genre) book.genre = genre;
 
     if (coverFile && coverFile.size > 0) {
+      const coverError = validateCover(coverFile);
+      if (coverError) {
+        return NextResponse.json({ error: coverError }, { status: 400 });
+      }
       const uploadResult = await UploadImage(coverFile, "ShelfX");
       if (uploadResult?.secure_url) {
         book.cover = uploadResult.secure_url;

@@ -3,8 +3,7 @@ export const runtime = "nodejs";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/connectToDB";
-
-import mongoose from "mongoose";
+import { isValidId, serialize } from "@/lib/queries";
 import library from "../../../../../../models/library";
 
 export async function GET(
@@ -15,22 +14,19 @@ export async function GET(
         const { userId } = await auth();
         const { bookId } = await context.params;
 
-        if (!userId) {
-            return NextResponse.json({ added: false });
-        }
-        if (!mongoose.Types.ObjectId.isValid(bookId)) {
-            return NextResponse.json({ added: false });
+        if (!userId || !isValidId(bookId)) {
+            return NextResponse.json({ added: false, entry: null });
         }
 
         await connectToDatabase();
 
-        const exists = await library.findOne({
+        const entry = await library.findOne({
             userId,
-            book:bookId,
+            book: bookId,
         }).lean();
-        return NextResponse.json({ added: !!exists });
+        return NextResponse.json({ added: !!entry, entry: entry ? serialize(entry) : null });
     } catch (err) {
         console.error("Library status error:", err);
-        return NextResponse.json({ added: false });
+        return NextResponse.json({ added: false, entry: null });
     }
 }

@@ -1,35 +1,35 @@
-"use client";
-import axios from 'axios';
-import { Loader2 } from 'lucide-react';
-import { useParams } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
-import BookDetails from '../../../../components/BookDetails';
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
+import { getBookById, getSimilarBooks } from "@/lib/queries";
+import BookDetails from "../../../../components/BookDetails";
 
-const BookPage = () => {
-    const params = useParams();
-    const [bookDetails, setBookDetails] = useState<Book | null>(null);
-    useEffect(() => {
-        const fetchBookDetails = async () => {
-            try {
-                const res = await axios.get(`/api/books/${params.bookId}`);
-                setBookDetails(res.data);
-            } catch (error) {
-                console.error("Failed to fetch book details", error);
-            }
-        };
+export const dynamic = "force-dynamic";
 
-        if (params?.bookId) {
-            fetchBookDetails();
-        }
-    }, [params?.bookId]);
-    return (
-        <div>
-            {bookDetails ? <BookDetails {...bookDetails} /> : <div className="py-24 px-6 min-h-screen flex flex-col items-center justify-center text-[#847062]">
-                <Loader2 className="animate-spin text-2xl mb-4" />
-                <p className="text-lg font-medium">Loading Books...</p>
-            </div>}
-        </div>
-    );
-};
+type PageProps = { params: Promise<{ bookId: string }> };
 
-export default BookPage;
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+    const book = await getBookById((await params).bookId);
+    if (!book) return { title: "Book not found" };
+
+    const description = book.summary.length > 160 ? `${book.summary.slice(0, 157)}…` : book.summary;
+    return {
+        title: `${book.title} by ${book.author}`,
+        description,
+        openGraph: {
+            title: `${book.title} by ${book.author}`,
+            description,
+            images: [{ url: book.cover }],
+        },
+    };
+}
+
+export default async function BookPage({ params }: PageProps) {
+    const { bookId } = await params;
+    const book = await getBookById(bookId);
+    if (!book) notFound();
+
+    const [similar, { userId }] = await Promise.all([getSimilarBooks(book), auth()]);
+
+    return <BookDetails book={book} similar={similar} isOwner={userId === book.addedBy?.id} />;
+}
