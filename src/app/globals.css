@@ -6,16 +6,17 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-playfair), ui-serif, Georgia, serif;
-  --color-ink: #6B4F3F;
-  --color-ink-strong: #4A3428;
-  --color-ink-muted: #847062;
-  --color-paper: #FAF7F3;
-  --color-sand: #E6D8C8;
-  --color-line: #DAD3C8;
-  --color-wine: #803939;
-  --color-gold: #C8963E;
+  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-archivo), "Arial Narrow", ui-sans-serif, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+  /* Library stacks: navy ink on cool steel-grey, orange kept for ratings */
+  --color-ink: #141B34;
+  --color-ink-strong: #0A0F22;
+  --color-ink-muted: #545B6E;
+  --color-stack: #E6E9E3;
+  --color-line: #D2D6CE;
+  --color-alert: #B42318;
+  --color-signal: #D9480F;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -55,25 +56,25 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: #FBFAF8;
-  --foreground: #2B211B;
-  --card: oklch(1 0 0);
-  --card-foreground: #2B211B;
-  --popover: oklch(1 0 0);
-  --popover-foreground: #2B211B;
-  --primary: #6B4F3F;
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: #F1EAE2;
-  --secondary-foreground: #6B4F3F;
-  --muted: #F1EAE2;
-  --muted-foreground: #847062;
-  --accent: #EFE6DC;
-  --accent-foreground: #4A3428;
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: #DAD3C8;
-  --input: #DAD3C8;
-  --ring: #B39C88;
+  --radius: 0.25rem;
+  --background: #F5F6F2;
+  --foreground: #141B34;
+  --card: #FFFFFF;
+  --card-foreground: #141B34;
+  --popover: #FFFFFF;
+  --popover-foreground: #141B34;
+  --primary: #141B34;
+  --primary-foreground: #FFFFFF;
+  --secondary: #E6E9E3;
+  --secondary-foreground: #141B34;
+  --muted: #E6E9E3;
+  --muted-foreground: #545B6E;
+  --accent: #E6E9E3;
+  --accent-foreground: #141B34;
+  --destructive: #B42318;
+  --border: #D2D6CE;
+  --input: #BFC4BA;
+  --ring: #3B4A8C;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -131,14 +132,25 @@
     @apply bg-background text-foreground font-sans;
   }
   h1, h2, h3 {
-    @apply font-serif;
+    @apply font-display;
+    font-stretch: 72%;
+    font-weight: 800;
+    letter-spacing: -0.005em;
+  }
+  ::selection {
+    background: #141B34;
+    color: #FFFFFF;
   }
 }
 
 @layer utilities {
-  /* Subtle dotted "paper" texture used behind hero sections */
-  .paper-dots {
-    background-image: radial-gradient(#6B4F3F 0.6px, transparent 0.6px);
-    background-size: 18px 18px;
+  /* Condensed display cut of Archivo, for spine titles and other non-heading labels */
+  .font-condensed {
+    /* @apply, not var(): @theme inline doesn't emit --font-display as a CSS variable */
+    @apply font-display;
+    font-stretch: 72%;
+  }
+  .spine-text {
+    writing-mode: vertical-rl;
   }
 }

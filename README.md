@@ -24,7 +24,7 @@ A full-stack reading tracker and book community built with Next.js 16, React 19,
 - **Route protection** with Clerk middleware (`src/proxy.ts`) for the library, add, edit and my-books pages. Every mutating API route checks ownership.
 - **Denormalized counters** (`ratingAvg`, `ratingCount`, `readersCount`) on books keep sorting by rating and popularity fast.
 - **Polished states**: skeleton loaders, empty states, a custom 404 and an error boundary.
-- **Responsive design** with a warm, paper-inspired theme (Playfair Display + DM Sans).
+- **Responsive design** with a "library stacks" theme: navy ink on cool grey, one colour per genre (after Penguin's colour-coded paperbacks), Archivo Condensed + Public Sans + IBM Plex Mono.
 
 ## Tech Stack
 

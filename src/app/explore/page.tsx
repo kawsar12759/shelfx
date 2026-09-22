@@ -10,15 +10,15 @@ export const metadata: Metadata = {
 
 export default function ExplorePage() {
     return (
-        <section className="min-h-screen bg-linear-to-b from-paper via-[#F4EFE9] to-[#EFE7DE]">
+        <section className="min-h-screen">
             <div className="mx-auto max-w-7xl space-y-10 px-5 py-14">
-                <header className="max-w-3xl space-y-3">
-                    <h1 className="text-4xl font-extrabold tracking-tight text-ink md:text-5xl">
-                        Explore the Library
+                <header className="space-y-3 border-b border-line pb-8">
+                    <h1 className="text-5xl leading-none text-ink md:text-6xl">
+                        Explore
                     </h1>
-                    <p className="text-lg leading-relaxed text-ink-muted">
-                        Books from every genre, era and style — search by title or author, filter by genre,
-                        and sort by what readers love most.
+                    <p className="max-w-2xl text-lg leading-relaxed text-ink-muted">
+                        Search by title or author, narrow by genre, and sort by rating or by how many
+                        readers have shelved a book.
                     </p>
                 </header>
                 <Suspense fallback={<BookGridSkeleton count={8} />}>

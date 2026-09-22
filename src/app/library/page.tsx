@@ -7,11 +7,11 @@ export const metadata: Metadata = {
 
 export default function LibraryPage() {
     return (
-        <section className="min-h-screen bg-linear-to-b from-paper via-[#F4EFE9] to-[#EFE7DE]">
+        <section className="min-h-screen">
             <div className="mx-auto max-w-7xl space-y-10 px-5 py-14">
-                <header className="max-w-3xl space-y-3">
-                    <h1 className="text-4xl font-extrabold tracking-tight text-ink md:text-5xl">My Library</h1>
-                    <p className="text-lg leading-relaxed text-ink-muted">
+                <header className="space-y-3 border-b border-line pb-8">
+                    <h1 className="text-5xl leading-none text-ink md:text-6xl">My Library</h1>
+                    <p className="max-w-2xl text-lg leading-relaxed text-ink-muted">
                         Everything on your shelf — what you&apos;re reading now, what&apos;s next, and what you&apos;ve finished.
                     </p>
                 </header>

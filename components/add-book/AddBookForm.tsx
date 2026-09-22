@@ -185,14 +185,14 @@ const AddBookForm = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Book Title */}
           <div className="space-y-2">
-            <Label htmlFor="title" className="font-semibold text-lg text-[#333]">
+            <Label htmlFor="title" className="font-semibold text-lg text-ink">
               Book Title *
             </Label>
             <Input
               id="title"
               name="title"
               placeholder="Enter the book title"
-              className="h-12 text-base focus-visible:ring-2 focus-visible:ring-[#6B4F3F]/70 focus-visible:ring-offset-2"
+              className="h-12 text-base focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               value={formData.title}
               onChange={handleInputChange}
             />
@@ -201,14 +201,14 @@ const AddBookForm = () => {
 
           {/* Author */}
           <div className="space-y-2">
-            <Label htmlFor="author" className="font-semibold text-lg text-[#333]">
+            <Label htmlFor="author" className="font-semibold text-lg text-ink">
               Author *
             </Label>
             <Input
               id="author"
               name="author"
               placeholder="Enter the author's name"
-              className="h-12 text-base focus-visible:ring-2 focus-visible:ring-[#6B4F3F]/70 focus-visible:ring-offset-2"
+              className="h-12 text-base focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               value={formData.author}
               onChange={handleInputChange}
             />
@@ -219,7 +219,7 @@ const AddBookForm = () => {
 
           {/* Cover */}
           <div className="space-y-2">
-            <Label htmlFor="cover" className="font-semibold text-lg text-[#333]">
+            <Label htmlFor="cover" className="font-semibold text-lg text-ink">
               Cover Image *
             </Label>
 
@@ -245,7 +245,7 @@ const AddBookForm = () => {
                   type="file"
                   accept="image/*"
                   onChange={handleFileChange}
-                  className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-5 file:rounded-full file:border-0 file:bg-[#6B4F3F] file:text-white file:font-semibold file:tracking-wide hover:file:cursor-pointer active:file:scale-95 hover:file:bg-[#5A4033] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6B4F3F]/70 focus-visible:ring-offset-2 cursor-pointer"
+                  className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-5 file:rounded-sm file:border-0 file:bg-ink file:text-white file:font-semibold file:tracking-wide hover:file:cursor-pointer active:file:scale-95 hover:file:bg-ink-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer"
                 />
                 <p className="text-sm text-muted-foreground mt-1">
                   Upload a cover image (JPEG/PNG). Max size: 5MB
@@ -259,7 +259,7 @@ const AddBookForm = () => {
 
           {/* Genre */}
           <div className="space-y-3">
-            <Label className="font-semibold text-lg text-[#333]">Genre *</Label>
+            <Label className="font-semibold text-lg text-ink">Genre *</Label>
             <div className="flex flex-wrap gap-2">
               {GENRES.map((genre) => (
                 <Button
@@ -267,7 +267,7 @@ const AddBookForm = () => {
                   type="button"
                   variant={formData.genre.includes(genre) ? "default" : "outline"}
                   size="sm"
-                  className="rounded-full"
+                  className="rounded-sm"
                   onClick={() => handleGenreSelect(genre)}
                   disabled={formData.genre.length >= 3 && !formData.genre.includes(genre)} // Disable button if 3 genres are selected and the genre isn't already selected
                 >
@@ -281,7 +281,7 @@ const AddBookForm = () => {
 
           {/* Summary */}
           <div className="space-y-2">
-            <Label htmlFor="summary" className="font-semibold text-lg text-[#333]">
+            <Label htmlFor="summary" className="font-semibold text-lg text-ink">
               Summary *
             </Label>
             <Textarea
@@ -289,7 +289,7 @@ const AddBookForm = () => {
               name="summary"
               placeholder="Tell us about this book..."
               rows={8}
-              className="resize-none text-base focus-visible:ring-2 focus-visible:ring-[#6B4F3F]/70 focus-visible:ring-offset-2"
+              className="resize-none text-base focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               value={formData.summary}
               onChange={handleInputChange}
             />
@@ -300,7 +300,7 @@ const AddBookForm = () => {
 
           {/* Publication Year */}
           <div className="space-y-2">
-            <Label htmlFor="publishedYear" className="font-semibold text-lg text-[#333]">
+            <Label htmlFor="publishedYear" className="font-semibold text-lg text-ink">
               Publication Year *
             </Label>
             <Input
@@ -310,7 +310,7 @@ const AddBookForm = () => {
               placeholder="e.g. 1954"
               min={1000}
               max={new Date().getFullYear()}
-              className="h-12 text-base focus-visible:ring-2 focus-visible:ring-[#6B4F3F]/70 focus-visible:ring-offset-2"
+              className="h-12 text-base focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               value={formData.publishedYear}
               onChange={handleInputChange}
             />
@@ -321,7 +321,7 @@ const AddBookForm = () => {
 
           {/* Pages */}
           <div className="space-y-2">
-            <Label htmlFor="pages" className="font-semibold text-lg text-[#333]">
+            <Label htmlFor="pages" className="font-semibold text-lg text-ink">
               Number of Pages *
             </Label>
             <Input
@@ -329,7 +329,7 @@ const AddBookForm = () => {
               name="pages"
               type="number"
               placeholder="Enter Number of Pages"
-              className="h-12 text-base focus-visible:ring-2 focus-visible:ring-[#6B4F3F]/70 focus-visible:ring-offset-2"
+              className="h-12 text-base focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               value={formData.pages}
               onChange={handleInputChange}
             />
@@ -338,7 +338,7 @@ const AddBookForm = () => {
 
           {/* Language */}
           <div className="space-y-2">
-            <Label htmlFor="language" className="font-semibold text-lg text-[#333]">
+            <Label htmlFor="language" className="font-semibold text-lg text-ink">
               Language *
             </Label>
             <Input
@@ -346,7 +346,7 @@ const AddBookForm = () => {
               name="language"
               type="text"
               placeholder="English"
-              className="h-12 text-base focus-visible:ring-2 focus-visible:ring-[#6B4F3F]/70 focus-visible:ring-offset-2"
+              className="h-12 text-base focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               value={formData.language}
               onChange={handleInputChange}
             />

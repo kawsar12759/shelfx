@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { GENRES, SORT_OPTIONS } from "@/lib/genres";
+import { GENRES, SORT_OPTIONS, genreColor } from "@/lib/genres";
 import { cn } from "@/lib/utils";
 import axios from "axios";
 import { ChevronLeft, ChevronRight, Search, SearchX, X } from "lucide-react";
@@ -109,14 +109,14 @@ const ExploreView = () => {
                         onChange={(e) => setQuery(e.target.value)}
                         placeholder="Search by title or author…"
                         aria-label="Search books"
-                        className="h-12 w-full rounded-full border border-line bg-white/80 pl-12 pr-10 text-base text-ink shadow-sm placeholder:text-ink-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:hidden"
+                        className="h-12 w-full rounded-sm border border-line bg-card pl-12 pr-10 text-base text-ink shadow-sm placeholder:text-ink-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:hidden"
                     />
                     {query && (
                         <button
                             type="button"
                             aria-label="Clear search"
                             onClick={() => setQuery("")}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer rounded-full p-1 text-ink-muted hover:bg-sand/60 hover:text-ink"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer rounded-sm p-1 text-ink-muted hover:bg-stack/60 hover:text-ink"
                         >
                             <X className="h-4 w-4" />
                         </button>
@@ -127,7 +127,7 @@ const ExploreView = () => {
                     id="sort"
                     value={sort}
                     onChange={(e) => setParams({ sort: e.target.value })}
-                    className="h-12 cursor-pointer rounded-full border border-line bg-white/80 px-5 text-sm font-medium text-ink shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="h-12 cursor-pointer rounded-sm border border-line bg-card px-5 text-sm font-medium text-ink shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                     {SORT_OPTIONS.map((o) => (
                         <option key={o.value} value={o.value}>{o.label}</option>
@@ -144,12 +144,13 @@ const ExploreView = () => {
                         onClick={() => setParams({ genre: g })}
                         aria-pressed={genre === g}
                         className={cn(
-                            "shrink-0 cursor-pointer rounded-full border px-4 py-1.5 text-sm font-medium transition-colors",
+                            "flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border px-3 py-1.5 text-sm font-medium transition-colors",
                             genre === g
                                 ? "border-ink bg-ink text-white"
-                                : "border-line bg-white/60 text-ink hover:bg-sand/50"
+                                : "border-line bg-card text-ink hover:border-ink"
                         )}
                     >
+                        {g !== "All" && <span className="h-2.5 w-2.5" style={{ backgroundColor: genreColor(g).bg }} aria-hidden />}
                         {g}
                     </button>
                 ))}
@@ -174,8 +175,8 @@ const ExploreView = () => {
             {loading || !results ? (
                 <BookGridSkeleton count={8} />
             ) : results.books.length === 0 ? (
-                <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-line bg-white/50 py-20 text-center">
-                    <SearchX className="h-10 w-10 text-[#C9B9A7]" />
+                <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-line bg-card py-20 text-center">
+                    <SearchX className="h-10 w-10 text-ink-muted/50" />
                     <p className="text-lg font-semibold text-ink">Nothing on this shelf yet</p>
                     <p className="max-w-sm text-sm text-ink-muted">Try a different search term or genre — or add the book yourself.</p>
                 </div>

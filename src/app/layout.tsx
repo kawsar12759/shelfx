@@ -1,25 +1,32 @@
 import type { Metadata } from "next";
-import { DM_Sans, Playfair_Display } from "next/font/google";
+import { Archivo, IBM_Plex_Mono, Public_Sans } from "next/font/google";
 import "./globals.css";
 import NavBar from "../../components/NavBar";
 import Footer from "../../components/Footer";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ToastContainer } from "react-toastify";
 
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
+// Archivo's width axis gives us condensed, spine-style headings
+const archivo = Archivo({
+  variable: "--font-archivo",
   subsets: ["latin"],
-  weight: ["400", "600", "700", "800"],
+  axes: ["wdth"],
 });
 
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+const publicSans = Public_Sans({
+  variable: "--font-public-sans",
   subsets: ["latin"],
+});
+
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
+  subsets: ["latin"],
+  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "ShelfX — Your reading life, beautifully organized",
+    default: "ShelfX — track what you read",
     template: "%s · ShelfX",
   },
   description:
@@ -39,10 +46,10 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body
-          className={`${playfair.variable} ${dmSans.variable} antialiased flex min-h-screen flex-col`}
+          className={`${archivo.variable} ${publicSans.variable} ${plexMono.variable} antialiased flex min-h-screen flex-col`}
         >
           <NavBar />
-          <ToastContainer position="bottom-right" theme="colored" autoClose={2500} />
+          <ToastContainer position="bottom-right" theme="light" autoClose={2500} />
           <main className="flex-1">{children}</main>
           <Footer />
         </body>

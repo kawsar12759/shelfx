@@ -61,7 +61,7 @@ const Reviews = ({ bookId }: { bookId: string }) => {
             setReviews((prev) => [saved, ...prev.filter((r) => r._id !== saved._id)]);
             setEditing(false);
             router.refresh(); // update the server-rendered rating in the header
-            toast.success(mine ? "Review updated" : "Thanks for your review!");
+            toast.success(mine ? "Review updated" : "Review posted");
         } catch {
             toast.error("Couldn't save your review.");
         } finally {
@@ -89,13 +89,13 @@ const Reviews = ({ bookId }: { bookId: string }) => {
 
     return (
         <section className="space-y-8" aria-labelledby="reviews-heading">
-            <h2 id="reviews-heading" className="text-3xl font-bold text-ink">Ratings &amp; Reviews</h2>
+            <h2 id="reviews-heading" className="border-b border-line pb-4 text-4xl text-ink">Ratings &amp; reviews</h2>
 
             <div className="grid gap-8 md:grid-cols-12">
                 {/* Summary */}
                 <div className="space-y-4 md:col-span-4">
                     <div className="flex items-end gap-3">
-                        <span className={`font-serif text-5xl font-bold ${reviews.length ? "text-ink" : "text-[#C9B9A7]"}`}>
+                        <span className={`font-mono text-5xl font-medium ${reviews.length ? "text-ink" : "text-ink-muted/50"}`}>
                             {summary.avg.toFixed(1)}
                         </span>
                         <div className="pb-1.5">
@@ -112,8 +112,8 @@ const Reviews = ({ bookId }: { bookId: string }) => {
                             return (
                                 <div key={star} className="flex items-center gap-2 text-xs text-ink-muted">
                                     <span className="w-10">{star} star</span>
-                                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-sand/60">
-                                        <div className="h-full rounded-full bg-gold" style={{ width: `${pct}%` }} />
+                                    <div className="h-2 flex-1 overflow-hidden rounded-sm bg-stack/60">
+                                        <div className="h-full rounded-sm bg-signal" style={{ width: `${pct}%` }} />
                                     </div>
                                     <span className="w-6 text-right tabular-nums">{count}</span>
                                 </div>
@@ -125,7 +125,7 @@ const Reviews = ({ bookId }: { bookId: string }) => {
                 {/* Form + list */}
                 <div className="space-y-6 md:col-span-8">
                     {isLoaded && !isSignedIn && (
-                        <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed border-line bg-white/50 p-5 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex flex-col items-start gap-3 rounded-md border border-dashed border-line bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
                             <p className="text-sm text-ink-muted">Read this one? Share what you thought.</p>
                             <SignInButton mode="modal">
                                 <Button size="sm" className="cursor-pointer">Sign in to review</Button>
@@ -134,7 +134,7 @@ const Reviews = ({ bookId }: { bookId: string }) => {
                     )}
 
                     {showForm && (
-                        <form onSubmit={submit} className="space-y-3 rounded-xl border border-line bg-white/70 p-5">
+                        <form onSubmit={submit} className="space-y-3 rounded-md border border-line bg-card p-5">
                             <p className="text-sm font-semibold text-ink">{mine ? "Edit your review" : "Write a review"}</p>
                             <div className="flex items-center gap-3">
                                 <StarRating value={rating} size={24} onChange={setRating} />
@@ -167,9 +167,9 @@ const Reviews = ({ bookId }: { bookId: string }) => {
                             <Loader2 className="h-6 w-6 animate-spin text-ink-muted" />
                         </div>
                     ) : reviews.length === 0 ? (
-                        <div className="flex flex-col items-center gap-2 rounded-xl bg-white/40 py-10 text-center text-ink-muted">
-                            <MessageSquareText className="h-8 w-8 text-[#C9B9A7]" />
-                            <p className="text-sm">No reviews yet — be the first to share your thoughts.</p>
+                        <div className="flex flex-col items-center gap-2 rounded-md bg-card py-10 text-center text-ink-muted">
+                            <MessageSquareText className="h-8 w-8 text-ink-muted/50" />
+                            <p className="text-sm">No reviews yet. If you&apos;ve read it, yours can be the first.</p>
                         </div>
                     ) : (
                         <ul className="divide-y divide-line/70">
@@ -178,7 +178,7 @@ const Reviews = ({ bookId }: { bookId: string }) => {
                                     {r.userImage ? (
                                         <Image src={r.userImage} alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-full object-cover" />
                                     ) : (
-                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sand font-semibold text-ink">
+                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-stack font-semibold text-ink">
                                             {r.userName.charAt(0)}
                                         </div>
                                     )}
@@ -186,16 +186,16 @@ const Reviews = ({ bookId }: { bookId: string }) => {
                                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                                             <span className="font-semibold text-ink">{r.userName}</span>
                                             {r.userId === userId && (
-                                                <span className="rounded-full bg-sand px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink">You</span>
+                                                <span className="rounded-sm bg-stack px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink">You</span>
                                             )}
                                             <StarRating value={r.rating} size={14} />
                                             <span className="text-xs text-ink-muted">{formatDate(r.updatedAt)}</span>
                                         </div>
-                                        {r.text && <p className="whitespace-pre-line text-sm leading-relaxed text-[#5E4B3F]">{r.text}</p>}
+                                        {r.text && <p className="whitespace-pre-line text-sm leading-relaxed text-ink">{r.text}</p>}
                                         {r.userId === userId && !editing && (
                                             <div className="flex gap-3 pt-1 text-xs">
                                                 <button type="button" onClick={startEdit} className="cursor-pointer text-ink-muted hover:text-ink">Edit</button>
-                                                <button type="button" onClick={removeMine} disabled={saving} className="flex cursor-pointer items-center gap-1 text-ink-muted hover:text-wine">
+                                                <button type="button" onClick={removeMine} disabled={saving} className="flex cursor-pointer items-center gap-1 text-ink-muted hover:text-alert">
                                                     <Trash2 className="h-3 w-3" /> Delete
                                                 </button>
                                             </div>

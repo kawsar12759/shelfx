@@ -62,7 +62,7 @@ const LibraryView = () => {
             const updated = res.data.entry;
             setItems((prev) => prev.map((e) => (e.book._id === bookId ? { ...e, ...updated, book: e.book } : e)));
             if (updated.status === "finished" && body.status !== "finished") {
-                toast.success("🎉 Finished! Nice work.");
+                toast.success("Marked as finished");
             } else {
                 toast.success(body.status ? `Moved to “${STATUS_LABELS[updated.status as ReadingStatus]}”` : "Progress saved");
             }
@@ -79,7 +79,7 @@ const LibraryView = () => {
             text: `“${entry.book.title}” and your reading progress will be removed from your shelf.`,
             icon: "question",
             showCancelButton: true,
-            confirmButtonColor: "#6B4F3F",
+            confirmButtonColor: "#141B34",
             cancelButtonColor: "#9CA3AF",
             confirmButtonText: "Remove",
         });
@@ -108,10 +108,10 @@ const LibraryView = () => {
         return (
             <div className="space-y-8" aria-busy>
                 <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                    {Array.from({ length: 4 }, (_, i) => <div key={i} className="h-24 animate-pulse rounded-xl bg-sand/50" />)}
+                    {Array.from({ length: 4 }, (_, i) => <div key={i} className="h-24 animate-pulse rounded-md bg-stack/50" />)}
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
-                    {Array.from({ length: 4 }, (_, i) => <div key={i} className="h-40 animate-pulse rounded-xl bg-sand/40" />)}
+                    {Array.from({ length: 4 }, (_, i) => <div key={i} className="h-40 animate-pulse rounded-md bg-stack/40" />)}
                 </div>
             </div>
         );
@@ -119,15 +119,15 @@ const LibraryView = () => {
 
     if (items.length === 0) {
         return (
-            <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-line bg-white/50 px-6 py-20 text-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-sand">
+            <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed border-line bg-card px-6 py-20 text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-sm bg-stack">
                     <BookMarked className="h-8 w-8 text-ink" />
                 </div>
                 <h2 className="text-2xl font-bold text-ink">Your shelf is empty</h2>
                 <p className="max-w-md text-ink-muted">
                     Find a book you love, add it to your library and start tracking your reading progress.
                 </p>
-                <Button asChild size="lg" className="mt-2 rounded-full">
+                <Button asChild size="lg" className="mt-2 rounded-sm">
                     <Link href="/explore"><Compass className="h-4 w-4" /> Explore books</Link>
                 </Button>
             </div>
@@ -138,9 +138,9 @@ const LibraryView = () => {
         <div className="space-y-10">
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 {statTiles.map(({ label, value, icon: Icon }) => (
-                    <div key={label} className="rounded-xl border border-line/80 bg-white/70 p-5 backdrop-blur">
+                    <div key={label} className="rounded-md border border-line/80 bg-card p-5">
                         <Icon className="h-5 w-5 text-ink-muted" />
-                        <p className="mt-3 font-serif text-3xl font-bold text-ink">{value}</p>
+                        <p className="mt-3 font-mono text-3xl font-medium tabular-nums text-ink">{value}</p>
                         <p className="text-sm text-ink-muted">{label}</p>
                     </div>
                 ))}
@@ -148,7 +148,7 @@ const LibraryView = () => {
 
             <div className="grid gap-8 lg:grid-cols-12">
                 <div className="space-y-6 lg:col-span-8">
-                    <div className="flex gap-1 overflow-x-auto rounded-xl bg-secondary p-1" role="tablist" aria-label="Filter by status">
+                    <div className="flex gap-1 overflow-x-auto rounded-md bg-secondary p-1" role="tablist" aria-label="Filter by status">
                         {TABS.map((t) => (
                             <button
                                 key={t.value}
@@ -162,13 +162,13 @@ const LibraryView = () => {
                                 )}
                             >
                                 {t.label}
-                                <span className="rounded-full bg-sand/80 px-1.5 text-xs tabular-nums">{countFor(t.value)}</span>
+                                <span className="rounded-sm bg-stack/80 px-1.5 text-xs tabular-nums">{countFor(t.value)}</span>
                             </button>
                         ))}
                     </div>
 
                     {visible.length === 0 ? (
-                        <p className="rounded-xl bg-white/50 py-14 text-center text-ink-muted">
+                        <p className="rounded-md bg-card py-14 text-center text-ink-muted">
                             Nothing here yet.
                         </p>
                     ) : (
@@ -187,7 +187,7 @@ const LibraryView = () => {
                 </div>
 
                 <aside className="space-y-6 lg:col-span-4">
-                    <div className="rounded-xl border border-line/80 bg-white/70 p-5">
+                    <div className="rounded-md border border-line/80 bg-card p-5">
                         <h2 className="text-lg font-bold text-ink">Your top genres</h2>
                         <ul className="mt-4 space-y-3">
                             {stats.topGenres.map(([genre, count]) => (
@@ -196,33 +196,33 @@ const LibraryView = () => {
                                         <Link href={`/explore?genre=${encodeURIComponent(genre)}`} className="text-ink hover:underline">{genre}</Link>
                                         <span className="tabular-nums text-ink-muted">{count}</span>
                                     </div>
-                                    <div className="h-1.5 overflow-hidden rounded-full bg-sand/60">
-                                        <div className="h-full rounded-full bg-ink/80" style={{ width: `${(count / stats.maxGenre) * 100}%` }} />
+                                    <div className="h-1.5 overflow-hidden rounded-sm bg-stack/60">
+                                        <div className="h-full rounded-sm bg-ink/80" style={{ width: `${(count / stats.maxGenre) * 100}%` }} />
                                     </div>
                                 </li>
                             ))}
                         </ul>
                     </div>
 
-                    <div className="rounded-xl bg-ink p-5 text-white">
+                    <div className="rounded-md bg-ink p-5 text-white">
                         <p className="text-sm text-white/70">Reading breakdown</p>
-                        <div className="mt-3 flex h-3 overflow-hidden rounded-full bg-white/15">
+                        <div className="mt-3 flex h-3 overflow-hidden rounded-sm bg-white/15">
                             {(["finished", "reading", "want-to-read"] as ReadingStatus[]).map((s) => {
                                 const n = s === "finished" ? stats.finished : s === "reading" ? stats.reading : stats.want;
                                 return (
                                     <div
                                         key={s}
                                         title={`${STATUS_LABELS[s]}: ${n}`}
-                                        className={s === "finished" ? "bg-[#C9B3E0]" : s === "reading" ? "bg-[#A9C98F]" : "bg-white/40"}
+                                        className={s === "finished" ? "bg-[#86EFAC]" : s === "reading" ? "bg-[#93B4F5]" : "bg-card"}
                                         style={{ width: `${(n / items.length) * 100}%` }}
                                     />
                                 );
                             })}
                         </div>
                         <ul className="mt-3 space-y-1 text-sm">
-                            <li className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-[#C9B3E0]" /> Finished · {stats.finished}</li>
-                            <li className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-[#A9C98F]" /> Reading · {stats.reading}</li>
-                            <li className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-white/40" /> Want to read · {stats.want}</li>
+                            <li className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-[#86EFAC]" /> Finished · {stats.finished}</li>
+                            <li className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-[#93B4F5]" /> Reading · {stats.reading}</li>
+                            <li className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-card" /> Want to read · {stats.want}</li>
                         </ul>
                     </div>
                 </aside>

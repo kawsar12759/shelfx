@@ -113,7 +113,7 @@ export async function getSiteStats() {
         Book.aggregate<{ _id: string; count: number }>([
             { $unwind: "$genre" },
             { $group: { _id: "$genre", count: { $sum: 1 } } },
-            { $sort: { count: -1 } },
+            { $sort: { count: -1, _id: 1 } },
         ]),
     ]);
     return {

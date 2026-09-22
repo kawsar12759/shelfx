@@ -28,9 +28,9 @@ const StarRating = ({ value, size = 16, className, onChange }: StarRatingProps) 
                 const fill = Math.max(0, Math.min(1, shown - (star - 1)));
                 const icon = (
                     <span className="relative inline-block" style={{ width: size, height: size }}>
-                        <Star className="absolute inset-0 text-[#D9CBBB]" style={{ width: size, height: size }} strokeWidth={1.5} />
+                        <Star className="absolute inset-0 text-line" style={{ width: size, height: size }} strokeWidth={1.5} />
                         <span className="absolute inset-0 overflow-hidden" style={{ width: `${fill * 100}%` }}>
-                            <Star className="fill-gold text-gold" style={{ width: size, height: size }} strokeWidth={1.5} />
+                            <Star className="fill-signal text-signal" style={{ width: size, height: size }} strokeWidth={1.5} />
                         </span>
                     </span>
                 );

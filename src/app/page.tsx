@@ -8,25 +8,25 @@ import { getRecentBooks, getSiteStats, getTopRatedBooks } from "@/lib/queries";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [recent, topRated, stats] = await Promise.all([
-    getRecentBooks(8),
+  const [shelf, topRated, stats] = await Promise.all([
+    getRecentBooks(24),
     getTopRatedBooks(4),
     getSiteStats(),
   ]);
 
   return (
     <div>
-      <Hero stats={stats} covers={recent} />
+      <Hero stats={stats} books={shelf} />
       <ShelfSection
-        title="Recently Added"
-        subtitle="Fresh additions from the ShelfX community."
+        title="Recently added"
+        subtitle="The latest books readers have added."
         href="/explore"
-        books={recent}
+        books={shelf.slice(0, 8)}
       />
       <GenreGrid genres={stats.genres} />
       <ShelfSection
-        title="Top Rated"
-        subtitle="The books readers can't stop recommending."
+        title="Top rated"
+        subtitle="Highest average score from reader reviews."
         href="/explore?sort=rating"
         books={topRated}
       />

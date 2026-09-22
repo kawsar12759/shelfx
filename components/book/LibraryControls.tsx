@@ -52,7 +52,7 @@ const LibraryControls = ({ bookId, totalPages }: { bookId: string; totalPages: n
             const res = await axios.post("/api/library/add", { bookId, status });
             applyEntry(res.data.entry);
             router.refresh(); // update the "On shelves" count
-            toast.success(`Added to “${STATUS_LABELS[status]}” 📚`);
+            toast.success(`Added to “${STATUS_LABELS[status]}”`);
         } catch {
             toast.error("Couldn't add this book. Please try again.");
         } finally {
@@ -90,7 +90,7 @@ const LibraryControls = ({ bookId, totalPages }: { bookId: string; totalPages: n
 
     if (!isLoaded || checking) {
         return (
-            <div className="flex h-24 items-center justify-center rounded-xl border border-line bg-white/60">
+            <div className="flex h-24 items-center justify-center rounded-md border border-line bg-card">
                 <Loader2 className="h-5 w-5 animate-spin text-ink-muted" />
             </div>
         );
@@ -98,7 +98,7 @@ const LibraryControls = ({ bookId, totalPages }: { bookId: string; totalPages: n
 
     if (!isSignedIn) {
         return (
-            <div className="space-y-2 rounded-xl border border-line bg-white/70 p-4 text-center">
+            <div className="space-y-2 rounded-md border border-line bg-card p-4 text-center">
                 <p className="text-sm text-ink-muted">Keep track of this book on your shelf.</p>
                 <SignInButton mode="modal">
                     <Button className="w-full cursor-pointer">
@@ -111,7 +111,7 @@ const LibraryControls = ({ bookId, totalPages }: { bookId: string; totalPages: n
 
     if (!entry) {
         return (
-            <div className="space-y-2 rounded-xl border border-line bg-white/70 p-4">
+            <div className="space-y-2 rounded-md border border-line bg-card p-4">
                 <Button className="w-full cursor-pointer" size="lg" disabled={busy} onClick={() => addToLibrary("want-to-read")}>
                     {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <BookmarkPlus className="h-4 w-4" />}
                     Add to Want to Read
@@ -131,7 +131,7 @@ const LibraryControls = ({ bookId, totalPages }: { bookId: string; totalPages: n
     const percent = totalPages ? Math.round((entry.currentPage / totalPages) * 100) : 0;
 
     return (
-        <div className="space-y-4 rounded-xl border border-line bg-white/70 p-4">
+        <div className="space-y-4 rounded-md border border-line bg-card p-4">
             <div>
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-ink-muted">On your shelf</p>
                 <div className="grid grid-cols-3 gap-1 rounded-lg bg-secondary p-1" role="radiogroup" aria-label="Reading status">
@@ -160,8 +160,8 @@ const LibraryControls = ({ bookId, totalPages }: { bookId: string; totalPages: n
                         <span>Progress</span>
                         <span className="font-semibold text-ink">{percent}%</span>
                     </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-sand/70">
-                        <div className="h-full rounded-full bg-ink transition-all duration-500" style={{ width: `${percent}%` }} />
+                    <div className="h-2 overflow-hidden rounded-sm bg-stack/70">
+                        <div className="h-full rounded-sm bg-ink transition-all duration-500" style={{ width: `${percent}%` }} />
                     </div>
                     {entry.status === "reading" && (
                         <form
@@ -194,7 +194,7 @@ const LibraryControls = ({ bookId, totalPages }: { bookId: string; totalPages: n
                 type="button"
                 onClick={remove}
                 disabled={busy}
-                className="flex cursor-pointer items-center gap-1.5 text-xs text-ink-muted transition-colors hover:text-wine"
+                className="flex cursor-pointer items-center gap-1.5 text-xs text-ink-muted transition-colors hover:text-alert"
             >
                 <Trash2 className="h-3.5 w-3.5" /> Remove from library
             </button>
