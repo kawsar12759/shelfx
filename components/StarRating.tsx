@@ -28,7 +28,7 @@ const StarRating = ({ value, size = 16, className, onChange }: StarRatingProps) 
                 const fill = Math.max(0, Math.min(1, shown - (star - 1)));
                 const icon = (
                     <span className="relative inline-block" style={{ width: size, height: size }}>
-                        <Star className="absolute inset-0 text-line" style={{ width: size, height: size }} strokeWidth={1.5} />
+                        <Star className="absolute inset-0 text-ink/20" style={{ width: size, height: size }} strokeWidth={1.5} />
                         <span className="absolute inset-0 overflow-hidden" style={{ width: `${fill * 100}%` }}>
                             <Star className="fill-signal text-signal" style={{ width: size, height: size }} strokeWidth={1.5} />
                         </span>
@@ -44,7 +44,7 @@ const StarRating = ({ value, size = 16, className, onChange }: StarRatingProps) 
                         role="radio"
                         aria-checked={value === star}
                         aria-label={`${star} star${star > 1 ? "s" : ""}`}
-                        className="cursor-pointer rounded p-0.5 transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className="cursor-pointer rounded-md p-0.5 transition-transform duration-150 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none motion-reduce:hover:scale-100"
                         onMouseEnter={() => setHover(star)}
                         onClick={() => onChange?.(star)}
                     >

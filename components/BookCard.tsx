@@ -1,55 +1,50 @@
-import { Star, Users } from 'lucide-react';
-import Image from 'next/image';
+import { Star } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 import { genreColor } from '@/lib/genres';
+import BookCover from './BookCover';
 
 const BookCard = ({ _id, title, author, cover, genre, ratingAvg = 0, ratingCount = 0, readersCount = 0 }: Book) => {
     const mainGenre = genre?.[0];
 
     return (
-        <Link href={`/book/${_id}`} className="group block h-full rounded-sm outline-offset-4 focus-visible:outline-2 focus-visible:outline-ring">
+        <Link href={`/book/${_id}`} className="group block h-full rounded-md outline-offset-4 focus-visible:outline-2 focus-visible:outline-ring">
             <article className="flex h-full flex-col">
-                <div className="relative aspect-2/3 w-full overflow-hidden rounded-sm bg-stack shadow-[0_1px_2px_rgba(20,27,52,0.12),0_8px_20px_-12px_rgba(20,27,52,0.35)] transition-transform duration-200 group-hover:-translate-y-1 motion-reduce:transition-none">
-                    <Image
+                <div className="shadow-cover transition-[transform,box-shadow] duration-500 ease-out-soft group-hover:-translate-y-1.5 group-hover:shadow-cover-lg motion-reduce:transition-none motion-reduce:group-hover:translate-y-0">
+                    <BookCover
                         src={cover}
-                        alt={`Cover of ${title}`}
-                        fill
-                        sizes="(min-width: 1280px) 22vw, (min-width: 768px) 30vw, (min-width: 640px) 45vw, 90vw"
-                        className="object-cover"
+                        title={title}
+                        sizes="(min-width: 1280px) 280px, (min-width: 768px) 30vw, 45vw"
                     />
                 </div>
 
-                <div className="flex flex-1 flex-col gap-1 pt-3">
+                <div className="flex flex-1 flex-col pt-4">
                     {mainGenre && (
-                        <p className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-ink-muted">
-                            <span className="h-2.5 w-2.5 shrink-0" style={{ backgroundColor: genreColor(mainGenre).bg }} aria-hidden />
+                        <p className="mb-1.5 flex items-center gap-1.5 font-mono text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">
+                            <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: genreColor(mainGenre).bg }} aria-hidden />
                             {mainGenre}
                         </p>
                     )}
-                    <h3 className="text-xl leading-tight text-ink line-clamp-2 decoration-2 underline-offset-4 group-hover:underline">
+                    <h3 className="font-serif text-[1.3rem] leading-[1.15] text-ink line-clamp-2">
                         {title}
                     </h3>
-                    <p className="text-sm text-ink-muted line-clamp-1">{author}</p>
-                    <div className="mt-auto flex items-center gap-3 pt-2 font-mono text-xs text-ink-muted">
-                        <span className="flex items-center gap-1" title={ratingCount ? `${ratingCount} ratings` : "No ratings yet"}>
-                            <Star className={`h-3.5 w-3.5 ${ratingCount ? "fill-signal text-signal" : "text-line"}`} />
-                            {ratingCount ? (
-                                <>
-                                    <span className="font-medium text-ink">{ratingAvg.toFixed(1)}</span>
-                                    <span>({ratingCount})</span>
-                                </>
-                            ) : (
-                                "No ratings"
-                            )}
-                        </span>
+                    <p className="mt-1 text-sm text-ink-muted line-clamp-1">{author}</p>
+                    <p className="mt-auto flex items-center gap-1.5 pt-3 text-xs text-ink-muted">
+                        {ratingCount ? (
+                            <>
+                                <Star className="h-3.5 w-3.5 fill-signal text-signal" aria-hidden />
+                                <span className="font-semibold tabular-nums text-ink">{ratingAvg.toFixed(1)}</span>
+                                <span className="tabular-nums">· {ratingCount} {ratingCount === 1 ? "rating" : "ratings"}</span>
+                            </>
+                        ) : (
+                            <span>Not yet rated</span>
+                        )}
                         {readersCount > 0 && (
-                            <span className="flex items-center gap-1" title={`On ${readersCount} shelves`}>
-                                <Users className="h-3.5 w-3.5" />
-                                {readersCount}
+                            <span className="ml-auto tabular-nums" title={`On ${readersCount} ${readersCount === 1 ? "shelf" : "shelves"}`}>
+                                {readersCount} {readersCount === 1 ? "reader" : "readers"}
                             </span>
                         )}
-                    </div>
+                    </p>
                 </div>
             </article>
         </Link>

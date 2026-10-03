@@ -1,33 +1,47 @@
-"use client";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
+import { getBookById } from "@/lib/queries";
+import BookForm from "../../../../components/book-form/BookForm";
+import SectionHeader from "../../../../components/SectionHeader";
 
-import React from "react";
-import { useParams } from "next/navigation";
-import EditBookForm from "../../../../components/edit-book/EditBookForm";
+export const dynamic = "force-dynamic";
 
-const EditBook = () => {
-    const { id } = useParams<{ id: string }>();
-
-    if (!id) return null;
-
-    return (
-        <div className="min-h-screen">
-            <div className="px-5 py-10 md:py-14">
-                <div className="mx-auto max-w-3xl">
-                    <header className="space-y-3 border-b border-line pb-8">
-                        <p className="font-mono text-xs uppercase tracking-wider text-ink-muted">My books</p>
-                        <h1 className="text-5xl leading-none text-ink md:text-6xl">Edit book</h1>
-                        <p className="max-w-xl text-lg leading-relaxed text-ink-muted">
-                            Changes show up on the book page as soon as you save.
-                        </p>
-                    </header>
-
-                    <div className="mt-8">
-                        <EditBookForm bookId={id} />
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+export const metadata: Metadata = {
+    title: "Edit book",
 };
 
-export default EditBook;
+type PageProps = { params: Promise<{ id: string }> };
+
+export default async function EditBookPage({ params }: PageProps) {
+    const { id } = await params;
+    const [book, { userId }] = await Promise.all([getBookById(id), auth()]);
+
+    // Only the reader who added a book can edit it; everyone else gets a 404
+    if (!book || book.addedBy?.id !== userId) notFound();
+
+    return (
+        <section className="mx-auto max-w-5xl space-y-12 px-5 pt-12 md:pt-16">
+            <SectionHeader
+                as="h1"
+                title={<>Edit <span className="italic text-ink-muted">{book.title}</span></>}
+                subtitle="Update the details readers see on this book's page."
+                className="border-b border-line pb-10"
+            />
+            <BookForm
+                mode="edit"
+                bookId={book._id}
+                initialCover={book.cover}
+                initial={{
+                    title: book.title,
+                    author: book.author,
+                    summary: book.summary,
+                    publishedYear: String(book.publishedYear ?? ""),
+                    pages: String(book.pages ?? ""),
+                    language: book.language ?? "",
+                    genre: Array.isArray(book.genre) ? book.genre.filter(Boolean) : [],
+                }}
+            />
+        </section>
+    );
+}

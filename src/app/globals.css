@@ -7,29 +7,19 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), "Iowan Old Style", Georgia, serif;
   --font-display: var(--font-archivo), "Arial Narrow", ui-sans-serif, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
-  /* Library stacks: navy ink on cool steel-grey, orange kept for ratings */
+  /* Reading room: navy ink on cool paper, orange kept for the mark and ratings */
   --color-ink: #141B34;
   --color-ink-strong: #0A0F22;
-  --color-ink-muted: #545B6E;
-  --color-stack: #E6E9E3;
-  --color-line: #D2D6CE;
+  --color-ink-muted: #5A6072;
+  --color-ink-faint: #8A8F9C;
+  --color-paper: #F4F5F0;
+  --color-stack: #E8EAE3;
+  --color-line: #DCDFD6;
   --color-alert: #B42318;
   --color-signal: #D9480F;
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -53,98 +43,81 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+  /* Layered, ink-tinted elevation */
+  --shadow-soft: 0 1px 2px rgba(20, 27, 52, 0.06), 0 4px 12px -4px rgba(20, 27, 52, 0.08);
+  --shadow-lift: 0 2px 4px rgba(20, 27, 52, 0.06), 0 16px 32px -12px rgba(20, 27, 52, 0.22);
+  --shadow-cover: 0 1px 2px rgba(20, 27, 52, 0.14), 0 10px 24px -10px rgba(20, 27, 52, 0.4);
+  --shadow-cover-lg: 0 2px 4px rgba(20, 27, 52, 0.12), 0 30px 60px -24px rgba(20, 27, 52, 0.55);
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 :root {
-  --radius: 0.25rem;
-  --background: #F5F6F2;
+  --radius: 0.625rem;
+  --background: #F4F5F0;
   --foreground: #141B34;
-  --card: #FFFFFF;
+  --card: #FCFCFA;
   --card-foreground: #141B34;
-  --popover: #FFFFFF;
+  --popover: #FCFCFA;
   --popover-foreground: #141B34;
   --primary: #141B34;
   --primary-foreground: #FFFFFF;
-  --secondary: #E6E9E3;
+  --secondary: #E8EAE3;
   --secondary-foreground: #141B34;
-  --muted: #E6E9E3;
-  --muted-foreground: #545B6E;
-  --accent: #E6E9E3;
+  --muted: #E8EAE3;
+  --muted-foreground: #5A6072;
+  --accent: #E8EAE3;
   --accent-foreground: #141B34;
   --destructive: #B42318;
-  --border: #D2D6CE;
-  --input: #BFC4BA;
+  --border: #DCDFD6;
+  --input: #C9CDC3;
   --ring: #3B4A8C;
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
   body {
     @apply bg-background text-foreground font-sans;
+    font-feature-settings: "ss01", "cv11";
+    text-rendering: optimizeLegibility;
   }
   h1, h2, h3 {
-    @apply font-display;
-    font-stretch: 72%;
-    font-weight: 800;
-    letter-spacing: -0.005em;
+    @apply font-serif;
+    font-weight: 420;
+    letter-spacing: -0.018em;
+    font-optical-sizing: auto;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
   }
   ::selection {
     background: #141B34;
     color: #FFFFFF;
   }
+  /* Native number spinners clash with the form styling */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
 }
 
 @layer utilities {
-  /* Condensed display cut of Archivo, for spine titles and other non-heading labels */
+  /* Condensed display cut of Archivo, used only for spine lettering */
   .font-condensed {
     /* @apply, not var(): @theme inline doesn't emit --font-display as a CSS variable */
     @apply font-display;
@@ -152,5 +125,75 @@
   }
   .spine-text {
     writing-mode: vertical-rl;
+  }
+  /* Small uppercase label above a heading */
+  .eyebrow {
+    @apply font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-ink-muted;
+  }
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  /* Custom chevron for native selects */
+  .select-chevron {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235A6072' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.85rem center;
+    background-size: 1rem;
+    padding-right: 2.5rem;
+  }
+}
+
+/* ---------- Toasts (react-toastify), restyled to match ---------- */
+:root {
+  --toastify-font-family: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
+  --toastify-color-light: #141B34;
+  --toastify-text-color-light: #F4F5F0;
+  --toastify-color-progress-light: rgba(244, 245, 240, 0.35);
+  --toastify-color-success: #86EFAC;
+  --toastify-color-info: #93B4F5;
+  --toastify-color-warning: #FACC15;
+  --toastify-color-error: #FCA5A5;
+  --toastify-icon-color-success: #86EFAC;
+  --toastify-icon-color-info: #93B4F5;
+  --toastify-icon-color-warning: #FACC15;
+  --toastify-icon-color-error: #FCA5A5;
+  --toastify-toast-min-height: 52px;
+  --toastify-toast-bd-radius: 12px;
+  --toastify-toast-shadow: 0 2px 4px rgba(10, 15, 34, 0.12), 0 18px 40px -12px rgba(10, 15, 34, 0.45);
+}
+.Toastify__toast {
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.75rem 1rem;
+}
+.Toastify__close-button {
+  color: #F4F5F0;
+  opacity: 0.6;
+}
+.Toastify__progress-bar--wrp {
+  height: 2px;
+}
+
+/* ---------- Confirm dialog ---------- */
+dialog.confirm-dialog::backdrop {
+  background: rgba(10, 15, 34, 0.45);
+  backdrop-filter: blur(3px);
+}
+dialog.confirm-dialog[open] {
+  animation: dialog-in 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  dialog.confirm-dialog[open] {
+    animation: none;
   }
 }

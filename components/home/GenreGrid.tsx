@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import SectionHeader from "../SectionHeader";
 import { genreColor } from "@/lib/genres";
 
 // Book size in px. The covers are real 3D boxes, so these stay fixed rather than fluid.
@@ -59,7 +59,7 @@ const GenreBook = ({ name, count }: { name: string; count: number }) => {
                         ShelfX Books
                     </span>
                     <span className="flex flex-col items-center justify-center gap-1 border-y border-black/15 bg-[#FBFAF6] px-3 py-4 text-center">
-                        <span className="font-condensed text-xl font-extrabold leading-none text-ink">{name}</span>
+                        <span className="font-serif text-[1.35rem] leading-[1.05] tracking-tight text-ink">{name}</span>
                         <span className="font-mono text-[10px] text-ink-muted">
                             {count} {count === 1 ? "book" : "books"}
                         </span>
@@ -90,20 +90,13 @@ const GenreGrid = ({ genres }: { genres: { name: string; count: number }[] }) =>
     if (genres.length === 0) return null;
 
     return (
-        <section className="border-y border-line bg-stack/60 px-5 py-16">
+        <section className="mt-24 bg-stack/70 px-5 py-20">
             <div className="mx-auto max-w-7xl space-y-10">
-                <div className="flex flex-col items-start justify-between gap-4 border-b border-line pb-5 md:flex-row md:items-end">
-                    <div className="space-y-2">
-                        <h2 className="text-4xl text-ink md:text-5xl">Browse by genre</h2>
-                        <p className="text-ink-muted">The genres with the most books right now.</p>
-                    </div>
-                    <Link
-                        href="/explore"
-                        className="group inline-flex items-center gap-1.5 rounded-sm text-sm font-semibold text-ink underline decoration-line decoration-2 underline-offset-4 hover:decoration-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
-                    >
-                        All genres <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none" />
-                    </Link>
-                </div>
+                <SectionHeader
+                    title="Browse by genre"
+                    subtitle="The genres with the most books right now."
+                    link={{ href: "/explore", label: "All genres" }}
+                />
 
                 {/* Books wrap onto as many shelves as the width needs; the background draws a plank under each row */}
                 <ul

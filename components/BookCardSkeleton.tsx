@@ -1,16 +1,25 @@
+import { cn } from "@/lib/utils";
+
+/** Grid used by every list of book cards, so skeletons and results line up exactly. */
+export const BOOK_GRID = "grid grid-cols-2 gap-x-5 gap-y-10 sm:gap-x-8 md:grid-cols-3 xl:grid-cols-4";
+
+export const Shimmer = ({ className }: { className?: string }) => (
+    <div className={cn("animate-pulse rounded-md bg-ink/7 motion-reduce:animate-none", className)} />
+);
+
 const BookCardSkeleton = () => (
     <div aria-hidden>
-        <div className="aspect-2/3 w-full animate-pulse rounded-sm bg-stack" />
-        <div className="space-y-2 pt-3">
-            <div className="h-5 w-4/5 animate-pulse rounded bg-stack/60" />
-            <div className="h-4 w-1/2 animate-pulse rounded bg-stack/50" />
-            <div className="h-3 w-1/4 animate-pulse rounded bg-stack/40" />
+        <Shimmer className="aspect-2/3 w-full rounded-l-[3px] rounded-r-[5px]" />
+        <div className="space-y-2.5 pt-4">
+            <Shimmer className="h-2.5 w-1/4" />
+            <Shimmer className="h-5 w-4/5" />
+            <Shimmer className="h-3.5 w-1/2" />
         </div>
     </div>
 );
 
 export const BookGridSkeleton = ({ count = 8 }: { count?: number }) => (
-    <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 xl:grid-cols-4">
+    <div className={BOOK_GRID} role="status" aria-label="Loading books">
         {Array.from({ length: count }, (_, i) => (
             <BookCardSkeleton key={i} />
         ))}

@@ -5,17 +5,31 @@ import { formatDate } from "@/lib/utils";
 import { SignInButton, useAuth } from "@clerk/nextjs";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { Loader2, MessageSquareText, Trash2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import StarRating from "../StarRating";
+import { useConfirm } from "../ConfirmDialog";
+import { Shimmer } from "../BookCardSkeleton";
+import SectionHeader from "../SectionHeader";
 
 const RATING_WORDS = ["", "Didn't like it", "It was okay", "Liked it", "Really liked it", "Loved it"];
+const MAX_LENGTH = 2000;
+
+const Avatar = ({ review }: { review: Review }) =>
+    review.userImage ? (
+        <Image src={review.userImage} alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-full object-cover" />
+    ) : (
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-stack font-serif text-lg text-ink" aria-hidden>
+            {review.userName.charAt(0)}
+        </div>
+    );
 
 const Reviews = ({ bookId }: { bookId: string }) => {
     const { isLoaded, isSignedIn, userId } = useAuth();
     const router = useRouter();
+    const confirm = useConfirm();
     const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(true);
     const [rating, setRating] = useState(0);
@@ -32,6 +46,8 @@ const Reviews = ({ bookId }: { bookId: string }) => {
     }, [bookId]);
 
     const mine = reviews.find((r) => r.userId === userId);
+    // Your own review is pinned to the top of the list
+    const ordered = useMemo(() => (mine ? [mine, ...reviews.filter((r) => r !== mine)] : reviews), [reviews, mine]);
 
     const summary = useMemo(() => {
         const counts = [0, 0, 0, 0, 0];
@@ -48,10 +64,16 @@ const Reviews = ({ bookId }: { bookId: string }) => {
         setEditing(true);
     };
 
+    const cancelEdit = () => {
+        setEditing(false);
+        setRating(0);
+        setText("");
+    };
+
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!rating) {
-            toast.warn("Pick a star rating first");
+            toast.warn("Choose a star rating to post your review");
             return;
         }
         setSaving(true);
@@ -63,13 +85,21 @@ const Reviews = ({ bookId }: { bookId: string }) => {
             router.refresh(); // update the server-rendered rating in the header
             toast.success(mine ? "Review updated" : "Review posted");
         } catch {
-            toast.error("Couldn't save your review.");
+            toast.error("Couldn't save your review. Try again.");
         } finally {
             setSaving(false);
         }
     };
 
     const removeMine = async () => {
+        const ok = await confirm({
+            title: "Delete your review?",
+            description: "Your rating and comments for this book will be removed.",
+            confirmLabel: "Delete review",
+            tone: "danger",
+        });
+        if (!ok) return;
+
         setSaving(true);
         try {
             await axios.delete(`/api/books/${bookId}/reviews`);
@@ -79,7 +109,7 @@ const Reviews = ({ bookId }: { bookId: string }) => {
             router.refresh();
             toast.info("Review deleted");
         } catch {
-            toast.error("Couldn't delete your review.");
+            toast.error("Couldn't delete your review. Try again.");
         } finally {
             setSaving(false);
         }
@@ -88,34 +118,34 @@ const Reviews = ({ bookId }: { bookId: string }) => {
     const showForm = isSignedIn && (!mine || editing);
 
     return (
-        <section className="space-y-8" aria-labelledby="reviews-heading">
-            <h2 id="reviews-heading" className="border-b border-line pb-4 text-4xl text-ink">Ratings &amp; reviews</h2>
+        <section className="space-y-10" aria-labelledby="reviews-heading">
+            <SectionHeader title={<span id="reviews-heading">Ratings &amp; reviews</span>} />
 
-            <div className="grid gap-8 md:grid-cols-12">
+            <div className="grid gap-12 md:grid-cols-12">
                 {/* Summary */}
-                <div className="space-y-4 md:col-span-4">
-                    <div className="flex items-end gap-3">
-                        <span className={`font-mono text-5xl font-medium ${reviews.length ? "text-ink" : "text-ink-muted/50"}`}>
+                <div className="space-y-6 md:col-span-4">
+                    <div className="flex items-end gap-4">
+                        <span className={`font-serif text-7xl leading-none tracking-tight ${reviews.length ? "text-ink" : "text-ink/25"}`}>
                             {summary.avg.toFixed(1)}
                         </span>
-                        <div className="pb-1.5">
-                            <StarRating value={summary.avg} size={18} />
+                        <div className="space-y-1 pb-1.5">
+                            <StarRating value={summary.avg} size={16} />
                             <p className="text-xs text-ink-muted">
                                 {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
                             </p>
                         </div>
                     </div>
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                         {[5, 4, 3, 2, 1].map((star) => {
                             const count = summary.counts[star - 1];
                             const pct = reviews.length ? (count / reviews.length) * 100 : 0;
                             return (
-                                <div key={star} className="flex items-center gap-2 text-xs text-ink-muted">
-                                    <span className="w-10">{star} star</span>
-                                    <div className="h-2 flex-1 overflow-hidden rounded-sm bg-stack/60">
-                                        <div className="h-full rounded-sm bg-signal" style={{ width: `${pct}%` }} />
+                                <div key={star} className="flex items-center gap-3 text-xs text-ink-muted">
+                                    <span className="w-3 text-right tabular-nums">{star}</span>
+                                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-ink/8">
+                                        <div className="h-full rounded-full bg-signal transition-[width] duration-700 ease-out-soft" style={{ width: `${pct}%` }} />
                                     </div>
-                                    <span className="w-6 text-right tabular-nums">{count}</span>
+                                    <span className="w-6 tabular-nums">{count}</span>
                                 </div>
                             );
                         })}
@@ -123,86 +153,103 @@ const Reviews = ({ bookId }: { bookId: string }) => {
                 </div>
 
                 {/* Form + list */}
-                <div className="space-y-6 md:col-span-8">
+                <div className="space-y-8 md:col-span-8">
                     {isLoaded && !isSignedIn && (
-                        <div className="flex flex-col items-start gap-3 rounded-md border border-dashed border-line bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
-                            <p className="text-sm text-ink-muted">Read this one? Share what you thought.</p>
+                        <div className="flex flex-col items-start gap-4 rounded-2xl border border-line bg-card p-6 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <p className="font-serif text-xl text-ink">Read this one?</p>
+                                <p className="text-sm text-ink-muted">Sign in to rate it and say what you thought.</p>
+                            </div>
                             <SignInButton mode="modal">
-                                <Button size="sm" className="cursor-pointer">Sign in to review</Button>
+                                <Button>Sign in to review</Button>
                             </SignInButton>
                         </div>
                     )}
 
                     {showForm && (
-                        <form onSubmit={submit} className="space-y-3 rounded-md border border-line bg-card p-5">
-                            <p className="text-sm font-semibold text-ink">{mine ? "Edit your review" : "Write a review"}</p>
-                            <div className="flex items-center gap-3">
-                                <StarRating value={rating} size={24} onChange={setRating} />
-                                <span className="text-sm text-ink-muted">{RATING_WORDS[rating]}</span>
+                        <form onSubmit={submit} className="space-y-4 rounded-2xl border border-line bg-card p-6 shadow-soft">
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <p className="font-serif text-xl text-ink">{mine ? "Edit your review" : "Write a review"}</p>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-sm text-ink-muted" aria-live="polite">{RATING_WORDS[rating]}</span>
+                                    <StarRating value={rating} size={24} onChange={setRating} />
+                                </div>
                             </div>
                             <Textarea
                                 value={text}
                                 onChange={(e) => setText(e.target.value)}
-                                maxLength={2000}
+                                maxLength={MAX_LENGTH}
                                 rows={4}
-                                placeholder="What did you like or dislike? (optional)"
-                                className="resize-none bg-white"
+                                aria-label="Your review"
+                                placeholder="What stayed with you? (optional)"
+                                className="min-h-28 resize-none"
                             />
-                            <div className="flex items-center justify-end gap-2">
-                                {editing && (
-                                    <Button type="button" variant="ghost" size="sm" onClick={() => setEditing(false)}>
-                                        Cancel
+                            <div className="flex items-center justify-between gap-2">
+                                <span className="font-mono text-[11px] text-ink-faint">
+                                    {text.length > MAX_LENGTH * 0.8 ? `${MAX_LENGTH - text.length} characters left` : ""}
+                                </span>
+                                <div className="flex gap-2">
+                                    {editing && (
+                                        <Button type="button" variant="ghost" onClick={cancelEdit}>
+                                            Cancel
+                                        </Button>
+                                    )}
+                                    <Button type="submit" disabled={saving}>
+                                        {saving && <Loader2 className="animate-spin" />}
+                                        {mine ? "Update review" : "Post review"}
                                     </Button>
-                                )}
-                                <Button type="submit" size="sm" disabled={saving} className="cursor-pointer">
-                                    {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-                                    {mine ? "Update review" : "Post review"}
-                                </Button>
+                                </div>
                             </div>
                         </form>
                     )}
 
                     {loading ? (
-                        <div className="flex justify-center py-10">
-                            <Loader2 className="h-6 w-6 animate-spin text-ink-muted" />
+                        <div className="space-y-6" aria-busy>
+                            {[0, 1].map((i) => (
+                                <div key={i} className="flex gap-4">
+                                    <Shimmer className="h-10 w-10 rounded-full" />
+                                    <div className="flex-1 space-y-2">
+                                        <Shimmer className="h-4 w-40" />
+                                        <Shimmer className="h-3.5 w-full" />
+                                        <Shimmer className="h-3.5 w-3/4" />
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     ) : reviews.length === 0 ? (
-                        <div className="flex flex-col items-center gap-2 rounded-md bg-card py-10 text-center text-ink-muted">
-                            <MessageSquareText className="h-8 w-8 text-ink-muted/50" />
-                            <p className="text-sm">No reviews yet. If you&apos;ve read it, yours can be the first.</p>
-                        </div>
+                        <p className="border-y border-line py-10 text-center font-serif text-xl italic text-ink-muted">
+                            No reviews yet. If you&apos;ve read it, yours can be the first.
+                        </p>
                     ) : (
-                        <ul className="divide-y divide-line/70">
-                            {reviews.map((r) => (
-                                <li key={r._id} className="flex gap-4 py-5 first:pt-0">
-                                    {r.userImage ? (
-                                        <Image src={r.userImage} alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-full object-cover" />
-                                    ) : (
-                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-stack font-semibold text-ink">
-                                            {r.userName.charAt(0)}
-                                        </div>
-                                    )}
-                                    <div className="min-w-0 flex-1 space-y-1">
-                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                                            <span className="font-semibold text-ink">{r.userName}</span>
-                                            {r.userId === userId && (
-                                                <span className="rounded-sm bg-stack px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink">You</span>
-                                            )}
-                                            <StarRating value={r.rating} size={14} />
-                                            <span className="text-xs text-ink-muted">{formatDate(r.updatedAt)}</span>
-                                        </div>
-                                        {r.text && <p className="whitespace-pre-line text-sm leading-relaxed text-ink">{r.text}</p>}
-                                        {r.userId === userId && !editing && (
-                                            <div className="flex gap-3 pt-1 text-xs">
-                                                <button type="button" onClick={startEdit} className="cursor-pointer text-ink-muted hover:text-ink">Edit</button>
-                                                <button type="button" onClick={removeMine} disabled={saving} className="flex cursor-pointer items-center gap-1 text-ink-muted hover:text-alert">
-                                                    <Trash2 className="h-3 w-3" /> Delete
-                                                </button>
+                        <ul className="divide-y divide-line">
+                            {ordered.map((r) => {
+                                const isMine = r.userId === userId;
+                                if (isMine && editing) return null;
+                                return (
+                                    <li key={r._id} className="flex gap-4 py-6 first:pt-0">
+                                        <Avatar review={r} />
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                                <span className="font-semibold text-ink">{r.userName}</span>
+                                                {isMine && (
+                                                    <span className="rounded-full bg-ink px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">You</span>
+                                                )}
+                                                <span className="text-xs text-ink-faint">{formatDate(r.updatedAt)}</span>
                                             </div>
-                                        )}
-                                    </div>
-                                </li>
-                            ))}
+                                            <StarRating value={r.rating} size={13} className="mt-1" />
+                                            {r.text && <p className="mt-2.5 max-w-[65ch] whitespace-pre-line leading-relaxed text-ink/90">{r.text}</p>}
+                                            {isMine && (
+                                                <div className="mt-3 flex gap-4 text-xs font-medium">
+                                                    <button type="button" onClick={startEdit} className="cursor-pointer text-ink-muted transition-colors hover:text-ink">Edit</button>
+                                                    <button type="button" onClick={removeMine} disabled={saving} className="cursor-pointer text-ink-muted transition-colors hover:text-alert">
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </li>
+                                );
+                            })}
                         </ul>
                     )}
                 </div>

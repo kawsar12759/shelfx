@@ -138,3 +138,14 @@ export async function recomputeBookRating(bookId: string) {
         }
     );
 }
+
+/** The books a reader is partway through, most recently touched first, for the home page. */
+export async function getCurrentlyReading(userId: string, limit = 3) {
+    await connectToDatabase();
+    const entries = await Library.find({ userId, status: "reading" })
+        .sort({ updatedAt: -1 })
+        .limit(limit)
+        .populate("book")
+        .lean();
+    return serialize<LibraryEntry[]>(entries).filter((e) => e.book);
+}

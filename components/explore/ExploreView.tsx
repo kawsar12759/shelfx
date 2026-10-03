@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { GENRES, SORT_OPTIONS, genreColor } from "@/lib/genres";
 import { cn } from "@/lib/utils";
 import axios from "axios";
-import { ChevronLeft, ChevronRight, Search, SearchX, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Search, X } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import BookCard from "../BookCard";
-import { BookGridSkeleton } from "../BookCardSkeleton";
+import { BOOK_GRID, BookGridSkeleton } from "../BookCardSkeleton";
 
 const PAGE_SIZE = 12;
 const DEFAULTS: Record<string, string> = { genre: "All", sort: "newest", page: "1" };
@@ -26,6 +27,7 @@ const ExploreView = () => {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
+    const topRef = useRef<HTMLDivElement>(null);
 
     const genre = (searchParams.get("genre") ?? "All").replace(/^"(.*)"$/, "$1");
     const sort = searchParams.get("sort") ?? "newest";
@@ -90,127 +92,157 @@ const ExploreView = () => {
 
     const goToPage = (p: number) => {
         setParams({ page: String(p) });
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     };
 
-    const hasFilters = q || genre !== "All" || sort !== "newest";
+    const hasFilters = Boolean(q) || genre !== "All" || sort !== "newest";
     const from = results && results.total ? (results.page - 1) * PAGE_SIZE + 1 : 0;
     const to = results ? Math.min(results.page * PAGE_SIZE, results.total) : 0;
+    const firstLoad = loading && !results;
 
     return (
-        <div className="space-y-10">
-            {/* Search + sort */}
-            <div className="flex flex-col gap-3 sm:flex-row">
-                <div className="relative flex-1">
-                    <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-muted" />
-                    <input
-                        type="search"
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Search by title or author…"
-                        aria-label="Search books"
-                        className="h-12 w-full rounded-sm border border-line bg-card pl-12 pr-10 text-base text-ink shadow-sm placeholder:text-ink-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:hidden"
-                    />
-                    {query && (
-                        <button
-                            type="button"
-                            aria-label="Clear search"
-                            onClick={() => setQuery("")}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer rounded-sm p-1 text-ink-muted hover:bg-stack/60 hover:text-ink"
-                        >
-                            <X className="h-4 w-4" />
-                        </button>
-                    )}
-                </div>
-                <label className="sr-only" htmlFor="sort">Sort books</label>
-                <select
-                    id="sort"
-                    value={sort}
-                    onChange={(e) => setParams({ sort: e.target.value })}
-                    className="h-12 cursor-pointer rounded-sm border border-line bg-card px-5 text-sm font-medium text-ink shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                    {SORT_OPTIONS.map((o) => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                </select>
-            </div>
-
-            {/* Genres */}
-            <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
-                {["All", ...GENRES].map((g) => (
-                    <button
-                        key={g}
-                        type="button"
-                        onClick={() => setParams({ genre: g })}
-                        aria-pressed={genre === g}
-                        className={cn(
-                            "flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border px-3 py-1.5 text-sm font-medium transition-colors",
-                            genre === g
-                                ? "border-ink bg-ink text-white"
-                                : "border-line bg-card text-ink hover:border-ink"
+        <div ref={topRef} className="scroll-mt-16">
+            {/* Toolbar stays in reach while scrolling the results */}
+            <div className="sticky top-16 z-30 -mx-5 space-y-3 border-b border-line bg-background/90 px-5 pb-3 pt-4 backdrop-blur-md backdrop-saturate-150">
+                <div className="flex gap-2">
+                    <div className="relative flex-1">
+                        <Search className="pointer-events-none absolute left-4 top-1/2 size-4.5 -translate-y-1/2 text-ink-muted" />
+                        <input
+                            type="search"
+                            data-search-input
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            onKeyDown={(e) => e.key === "Escape" && setQuery("")}
+                            placeholder="Search by title or author"
+                            aria-label="Search books"
+                            className="h-12 w-full rounded-full border border-line bg-white pl-11 pr-11 text-base text-ink shadow-soft transition-[border-color,box-shadow] placeholder:text-ink-faint hover:border-ink/30 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/15 [&::-webkit-search-cancel-button]:hidden"
+                        />
+                        {query && (
+                            <button
+                                type="button"
+                                aria-label="Clear search"
+                                onClick={() => setQuery("")}
+                                className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-ink/6 hover:text-ink"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
                         )}
+                    </div>
+                    <label className="sr-only" htmlFor="sort">Sort books</label>
+                    <select
+                        id="sort"
+                        value={sort}
+                        onChange={(e) => setParams({ sort: e.target.value })}
+                        className="select-chevron h-12 w-36 shrink-0 cursor-pointer rounded-full border border-line bg-white pl-4 text-sm font-medium text-ink shadow-soft transition-colors hover:border-ink/30 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/15 sm:w-44 sm:pl-5"
                     >
-                        {g !== "All" && <span className="h-2.5 w-2.5" style={{ backgroundColor: genreColor(g).bg }} aria-hidden />}
-                        {g}
-                    </button>
-                ))}
+                        {SORT_OPTIONS.map((o) => (
+                            <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Genres scroll sideways; the mask fades the clipped edge */}
+                <div
+                    className="scrollbar-none -mx-5 flex gap-1.5 overflow-x-auto px-5 mask-[linear-gradient(to_right,transparent,black_20px,black_calc(100%-40px),transparent)]"
+                    role="group"
+                    aria-label="Filter by genre"
+                >
+                    {["All", ...GENRES].map((g) => (
+                        <button
+                            key={g}
+                            type="button"
+                            onClick={() => setParams({ genre: g })}
+                            aria-pressed={genre === g}
+                            className={cn(
+                                "flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring",
+                                genre === g
+                                    ? "border-ink bg-ink text-white"
+                                    : "border-line bg-card text-ink-muted hover:border-ink/30 hover:text-ink"
+                            )}
+                        >
+                            {g !== "All" && <span className="h-2 w-2 rounded-full" style={{ backgroundColor: genreColor(g).bg }} aria-hidden />}
+                            {g}
+                        </button>
+                    ))}
+                </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-ink-muted">
+            <div className="flex min-h-14 flex-wrap items-center justify-between gap-3 py-6 text-sm text-ink-muted">
                 <p aria-live="polite">
-                    {loading || !results
+                    {firstLoad || !results
                         ? "Searching the shelves…"
                         : results.total === 0
                             ? "No books found"
-                            : `Showing ${from}–${to} of ${results.total} ${results.total === 1 ? "book" : "books"}`}
-                    {q && !loading && <> for “<span className="font-semibold text-ink">{q}</span>”</>}
+                            : <>Showing <span className="tabular-nums text-ink">{from}–{to}</span> of <span className="tabular-nums text-ink">{results.total}</span> {results.total === 1 ? "book" : "books"}</>}
+                    {q && results && results.total > 0 && <> for “<span className="font-semibold text-ink">{q}</span>”</>}
                 </p>
                 {hasFilters && (
-                    <button type="button" onClick={() => router.push(pathname, { scroll: false })} className="cursor-pointer font-medium text-ink underline-offset-4 hover:underline">
-                        Clear all filters
+                    <button
+                        type="button"
+                        onClick={() => router.push(pathname, { scroll: false })}
+                        className="flex cursor-pointer items-center gap-1 rounded-full font-medium text-ink transition-colors hover:text-ink-muted"
+                    >
+                        <X className="h-3.5 w-3.5" /> Clear filters
                     </button>
                 )}
             </div>
 
-            {loading || !results ? (
+            {firstLoad ? (
                 <BookGridSkeleton count={8} />
-            ) : results.books.length === 0 ? (
-                <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-line bg-card py-20 text-center">
-                    <SearchX className="h-10 w-10 text-ink-muted/50" />
-                    <p className="text-lg font-semibold text-ink">Nothing on this shelf yet</p>
-                    <p className="max-w-sm text-sm text-ink-muted">Try a different search term or genre — or add the book yourself.</p>
+            ) : results && results.books.length === 0 ? (
+                <div className="flex flex-col items-center rounded-3xl border border-line bg-card px-6 py-20 text-center">
+                    <p className="font-serif text-4xl text-ink">Nothing on this shelf</p>
+                    <p className="mt-3 max-w-md text-ink-muted">
+                        {q
+                            ? <>No title or author matches “{q}”{genre !== "All" ? ` in ${genre}` : ""}. Check the spelling, or try fewer words.</>
+                            : `There are no ${genre} books yet.`}
+                    </p>
+                    <div className="mt-8 flex flex-wrap justify-center gap-2">
+                        {hasFilters && (
+                            <Button variant="outline" onClick={() => router.push(pathname, { scroll: false })}>
+                                Clear filters
+                            </Button>
+                        )}
+                        <Button asChild>
+                            <Link href="/add-book">Add the book yourself</Link>
+                        </Button>
+                    </div>
                 </div>
             ) : (
-                <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 xl:grid-cols-4">
-                    {results.books.map((book) => (
+                <div
+                    className={cn(BOOK_GRID, "transition-opacity duration-300", loading && "pointer-events-none opacity-50")}
+                    aria-busy={loading}
+                >
+                    {results?.books.map((book) => (
                         <BookCard key={book._id} {...book} />
                     ))}
                 </div>
             )}
 
-            {results && results.totalPages > 1 && !loading && (
-                <nav className="flex items-center justify-center gap-1" aria-label="Pagination">
-                    <Button variant="ghost" size="sm" disabled={page <= 1} onClick={() => goToPage(page - 1)} className="cursor-pointer">
-                        <ChevronLeft className="h-4 w-4" /> Prev
+            {results && results.totalPages > 1 && (
+                <nav className="mt-16 flex items-center justify-center gap-1" aria-label="Pagination">
+                    <Button variant="ghost" size="sm" disabled={page <= 1 || loading} onClick={() => goToPage(page - 1)} className="h-10 px-3">
+                        <ArrowLeft /> <span className="hidden sm:inline">Previous</span>
                     </Button>
                     {pageList(page, results.totalPages).map((p, i) =>
                         p === "…" ? (
-                            <span key={`gap-${i}`} className="px-2 text-ink-muted">…</span>
+                            <span key={`gap-${i}`} className="w-8 text-center text-ink-faint">…</span>
                         ) : (
                             <Button
                                 key={p}
-                                size="icon-sm"
+                                size="icon"
                                 variant={p === page ? "default" : "ghost"}
-                                onClick={() => goToPage(p)}
+                                onClick={() => p !== page && goToPage(p)}
                                 aria-current={p === page ? "page" : undefined}
-                                className="cursor-pointer"
+                                aria-label={`Page ${p}`}
+                                className="tabular-nums"
                             >
                                 {p}
                             </Button>
                         )
                     )}
-                    <Button variant="ghost" size="sm" disabled={page >= results.totalPages} onClick={() => goToPage(page + 1)} className="cursor-pointer">
-                        Next <ChevronRight className="h-4 w-4" />
+                    <Button variant="ghost" size="sm" disabled={page >= results.totalPages || loading} onClick={() => goToPage(page + 1)} className="h-10 px-3">
+                        <span className="hidden sm:inline">Next</span> <ArrowRight />
                     </Button>
                 </nav>
             )}

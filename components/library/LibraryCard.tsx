@@ -1,10 +1,10 @@
 "use client";
 import { STATUS_LABELS } from "@/lib/genres";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import { Trash2 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
+import BookCover from "../BookCover";
 
 type LibraryCardProps = {
     entry: LibraryEntry;
@@ -14,36 +14,41 @@ type LibraryCardProps = {
 };
 
 const STATUS_STYLES: Record<ReadingStatus, string> = {
-    "want-to-read": "bg-stack text-ink",
-    reading: "bg-[#DCE5F5] text-[#1E3A8A]",
-    finished: "bg-[#DDEBDF] text-[#14532D]",
+    "want-to-read": "bg-ink/6 text-ink",
+    reading: "bg-[#E3EAF7] text-[#1E3A8A]",
+    finished: "bg-[#E2EFE4] text-[#14532D]",
 };
 
 const LibraryCard = ({ entry, busy, onUpdate, onRemove }: LibraryCardProps) => {
     const { book, status, currentPage } = entry;
     const [page, setPage] = useState(String(currentPage));
-    const percent = book.pages ? Math.round((currentPage / book.pages) * 100) : 0;
+    const percent = book.pages ? Math.min(Math.round((currentPage / book.pages) * 100), 100) : 0;
 
     return (
-        <article className="flex gap-4 rounded-md border border-line/80 bg-card p-4 transition-shadow hover:shadow-md">
-            <Link href={`/book/${book._id}`} className="relative aspect-2/3 w-20 shrink-0 overflow-hidden rounded-md shadow-sm sm:w-24">
-                <Image src={book.cover} alt={`Cover of ${book.title}`} fill sizes="96px" className="object-cover" />
+        <article
+            className={cn(
+                "group/card flex gap-5 rounded-2xl border border-line bg-card p-4 transition-[border-color,box-shadow,opacity] duration-300 hover:border-ink/15 hover:shadow-lift",
+                busy && "opacity-70"
+            )}
+        >
+            <Link href={`/book/${book._id}`} className="w-20 shrink-0 self-start shadow-cover sm:w-24" tabIndex={-1} aria-hidden>
+                <BookCover src={book.cover} title={book.title} sizes="96px" />
             </Link>
 
-            <div className="flex min-w-0 flex-1 flex-col gap-2">
+            <div className="flex min-w-0 flex-1 flex-col gap-3 py-0.5">
                 <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                        <Link href={`/book/${book._id}`} className="font-condensed text-xl font-extrabold leading-tight text-ink line-clamp-2 underline-offset-4 hover:underline">
+                        <Link href={`/book/${book._id}`} className="font-serif text-xl leading-tight text-ink line-clamp-2 decoration-ink/30 underline-offset-4 hover:underline">
                             {book.title}
                         </Link>
-                        <p className="text-sm text-ink-muted line-clamp-1">{book.author}</p>
+                        <p className="mt-0.5 text-sm text-ink-muted line-clamp-1">{book.author}</p>
                     </div>
                     <button
                         type="button"
                         aria-label={`Remove ${book.title} from library`}
                         disabled={busy}
                         onClick={() => onRemove(entry)}
-                        className="shrink-0 cursor-pointer rounded-md p-1.5 text-ink-muted transition-colors hover:bg-red-50 hover:text-alert"
+                        className="-mr-1 -mt-1 shrink-0 cursor-pointer rounded-full p-2 text-ink-faint transition-[color,background-color,opacity] hover:bg-red-50 hover:text-alert focus-visible:opacity-100 md:opacity-0 md:group-hover/card:opacity-100"
                     >
                         <Trash2 className="h-4 w-4" />
                     </button>
@@ -56,7 +61,11 @@ const LibraryCard = ({ entry, busy, onUpdate, onRemove }: LibraryCardProps) => {
                         value={status}
                         disabled={busy}
                         onChange={(e) => onUpdate(book._id, { status: e.target.value as ReadingStatus })}
-                        className={`cursor-pointer rounded-sm border-0 py-1 pl-3 pr-7 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${STATUS_STYLES[status]}`}
+                        className={cn(
+                            "select-chevron h-7 cursor-pointer rounded-full border-0 pl-3 text-xs font-semibold bg-position-[right_0.5rem_center]! bg-size-[0.85rem]! focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                            "pr-7!",
+                            STATUS_STYLES[status]
+                        )}
                     >
                         {Object.entries(STATUS_LABELS).map(([value, label]) => (
                             <option key={value} value={value}>{label}</option>
@@ -71,10 +80,10 @@ const LibraryCard = ({ entry, busy, onUpdate, onRemove }: LibraryCardProps) => {
                 </div>
 
                 {status !== "want-to-read" && (
-                    <div className="mt-auto space-y-1.5">
-                        <div className="h-1.5 overflow-hidden rounded-sm bg-stack/70">
+                    <div className="mt-auto space-y-2">
+                        <div className="h-1 overflow-hidden rounded-full bg-ink/10">
                             <div
-                                className={`h-full rounded-sm transition-all duration-500 ${status === "finished" ? "bg-[#15803D]" : "bg-ink"}`}
+                                className={cn("h-full rounded-full transition-[width] duration-700 ease-out-soft", status === "finished" ? "bg-[#15803D]" : "bg-ink")}
                                 style={{ width: `${percent}%` }}
                             />
                         </div>
@@ -83,28 +92,29 @@ const LibraryCard = ({ entry, busy, onUpdate, onRemove }: LibraryCardProps) => {
                                 className="flex items-center gap-1.5 text-xs text-ink-muted"
                                 onSubmit={(e) => {
                                     e.preventDefault();
-                                    onUpdate(book._id, { currentPage: Number(page) });
+                                    onUpdate(book._id, { currentPage: Math.min(Math.max(Number(page) || 0, 0), book.pages) });
                                 }}
                             >
                                 <label htmlFor={`page-${entry._id}`}>Page</label>
                                 <input
                                     id={`page-${entry._id}`}
                                     type="number"
+                                    inputMode="numeric"
                                     min={0}
                                     max={book.pages}
                                     value={page}
                                     onChange={(e) => setPage(e.target.value)}
-                                    className="h-7 w-16 rounded-md border border-input bg-white px-1.5 text-xs text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    className="h-7 w-16 rounded-md border border-input bg-white px-2 text-xs tabular-nums text-ink focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/20"
                                 />
-                                <span>of {book.pages} · {percent}%</span>
+                                <span className="tabular-nums">of {book.pages} · {percent}%</span>
                                 {page !== String(currentPage) && (
-                                    <button type="submit" disabled={busy} className="ml-auto cursor-pointer rounded-md bg-ink px-2 py-1 font-semibold text-white hover:bg-ink-strong">
+                                    <button type="submit" disabled={busy} className="ml-auto cursor-pointer rounded-full bg-ink px-3 py-1 font-semibold text-white transition-colors hover:bg-ink-strong animate-in fade-in zoom-in-95 duration-150">
                                         Save
                                     </button>
                                 )}
                             </form>
                         ) : (
-                            <p className="text-xs text-ink-muted">{book.pages} pages · 100%</p>
+                            <p className="text-xs tabular-nums text-ink-muted">{book.pages} pages · 100%</p>
                         )}
                     </div>
                 )}

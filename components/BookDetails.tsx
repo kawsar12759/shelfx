@@ -1,10 +1,13 @@
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, BookOpen, Calendar, Globe, Pencil, Star, User, Users } from "lucide-react";
+import { ChevronRight, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
 import { genreColor } from "@/lib/genres";
 import BookCard from "./BookCard";
+import BookCover from "./BookCover";
+import { BOOK_GRID } from "./BookCardSkeleton";
+import SectionHeader from "./SectionHeader";
+import StarRating from "./StarRating";
 import LibraryControls from "./book/LibraryControls";
 import Reviews from "./book/Reviews";
 
@@ -19,111 +22,131 @@ const BookDetails = ({ book, similar, isOwner }: BookDetailsProps) => {
     const ratingAvg = book.ratingAvg ?? 0;
     const ratingCount = book.ratingCount ?? 0;
     const readersCount = book.readersCount ?? 0;
-    const genres = Array.isArray(genre) ? genre : [genre];
+    const genres = (Array.isArray(genre) ? genre : [genre]).filter(Boolean);
+    const mainGenre = genres[0];
 
     const facts = [
-        { icon: BookOpen, label: "Pages", value: pages },
-        { icon: Calendar, label: "Published", value: publishedYear },
-        { icon: Globe, label: "Language", value: language },
-        { icon: Users, label: "On shelves", value: readersCount },
+        { label: "Pages", value: pages?.toLocaleString("en-US") },
+        { label: "Published", value: publishedYear },
+        { label: "Language", value: language },
+        { label: "On shelves", value: readersCount.toLocaleString("en-US") },
     ];
 
     return (
-        <section className="min-h-screen">
-            <div className="mx-auto max-w-6xl space-y-20 px-5 py-10 md:py-14">
-                <div className="space-y-6">
-                    <Link href="/explore" className="inline-flex items-center gap-1.5 text-sm text-ink-muted transition-colors hover:text-ink">
-                        <ArrowLeft className="h-4 w-4" /> Back to explore
-                    </Link>
-
-                    <div className="grid grid-cols-1 gap-10 md:grid-cols-12 md:gap-12">
-                        <div className="mx-auto w-full max-w-xs space-y-5 md:col-span-4 md:max-w-none">
-                            <div className="relative aspect-2/3 w-full overflow-hidden rounded-sm shadow-[0_1px_2px_rgba(20,27,52,0.15),0_24px_40px_-20px_rgba(20,27,52,0.5)]">
-                                <Image src={cover} alt={`Cover of ${title}`} fill priority sizes="(min-width: 768px) 360px, 80vw" className="object-cover" />
-                            </div>
-                            <LibraryControls bookId={_id} totalPages={pages} />
-                        </div>
-    
-                        <div className="space-y-7 md:col-span-8">
-                            <div className="space-y-3">
-                                <div className="flex flex-wrap gap-2">
-                                    {genres.map((g) => (
-                                        <Link
-                                            key={g}
-                                            href={`/explore?genre=${encodeURIComponent(g)}`}
-                                            className="flex items-center gap-1.5 rounded-sm border border-line bg-card px-2.5 py-1 font-mono text-xs uppercase tracking-wider text-ink transition-colors hover:border-ink"
-                                        >
-                                            <span className="h-2.5 w-2.5" style={{ backgroundColor: genreColor(g).bg }} aria-hidden />
-                                            {g}
-                                        </Link>
-                                    ))}
-                                </div>
-                                <h1 className="text-5xl leading-none text-ink md:text-6xl">{title}</h1>
-                                <p className="flex items-center gap-2 text-lg text-ink-muted">
-                                    <User className="h-4 w-4" />
-                                    by{" "}
-                                    <Link href={`/explore?q=${encodeURIComponent(author)}`} className="font-medium text-ink underline-offset-4 hover:underline">
-                                        {author}
+        <article>
+            <div className="mx-auto max-w-6xl px-5 pt-8 md:pt-10">
+                <nav aria-label="Breadcrumb" className="mb-8 md:mb-12">
+                    <ol className="flex flex-wrap items-center gap-1.5 text-sm text-ink-muted">
+                        <li><Link href="/explore" className="transition-colors hover:text-ink">Explore</Link></li>
+                        {mainGenre && (
+                            <>
+                                <ChevronRight className="h-3.5 w-3.5 text-ink-faint" aria-hidden />
+                                <li>
+                                    <Link href={`/explore?genre=${encodeURIComponent(mainGenre)}`} className="transition-colors hover:text-ink">
+                                        {mainGenre}
                                     </Link>
-                                </p>
-                                <a href="#reviews" className="inline-flex items-center gap-2 text-sm text-ink-muted hover:text-ink">
-                                    <Star className={`h-4 w-4 ${ratingCount ? "fill-signal text-signal" : ""}`} />
-                                    {ratingCount ? (
-                                        <>
-                                            <span className="font-semibold text-ink">{ratingAvg.toFixed(1)}</span> · {ratingCount}{" "}
-                                            {ratingCount === 1 ? "rating" : "ratings"}
-                                        </>
-                                    ) : (
-                                        "No ratings yet — be the first"
-                                    )}
-                                </a>
-                            </div>
-    
-                            <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                                {facts.map(({ icon: Icon, label, value }) => (
-                                    <div key={label} className="rounded-md border border-line/80 bg-card px-4 py-3">
-                                        <dt className="flex items-center gap-1.5 text-xs text-ink-muted">
-                                            <Icon className="h-3.5 w-3.5" /> {label}
-                                        </dt>
-                                        <dd className="mt-1 font-mono text-lg font-medium text-ink">{value}</dd>
-                                    </div>
-                                ))}
-                            </dl>
-    
-                            <div className="space-y-3">
-                                <h2 className="text-2xl text-ink">About this book</h2>
-                                <p className="whitespace-pre-line text-base leading-relaxed text-ink">{summary}</p>
-                            </div>
-    
-                            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line/70 pt-5 text-sm text-ink-muted">
-                                <p>
-                                    Added by <span className="font-semibold text-ink">{addedBy?.firstName}</span> on {formatDate(createdAt)}
-                                </p>
-                                {isOwner && (
-                                    <Button asChild size="sm" variant="outline">
-                                        <Link href={`/edit-book/${_id}`}>
-                                            <Pencil className="h-4 w-4" /> Edit book
-                                        </Link>
-                                    </Button>
-                                )}
-                            </div>
+                                </li>
+                            </>
+                        )}
+                        <ChevronRight className="h-3.5 w-3.5 text-ink-faint" aria-hidden />
+                        <li aria-current="page" className="max-w-[40ch] truncate text-ink">{title}</li>
+                    </ol>
+                </nav>
+
+                <div className="grid grid-cols-1 gap-12 md:grid-cols-12 md:gap-14">
+                    {/* Cover and shelf controls follow you down the page on desktop */}
+                    <div className="mx-auto w-full max-w-70 space-y-6 md:sticky md:top-24 md:col-span-4 md:max-w-none md:self-start">
+                        <div className="shadow-cover-lg">
+                            <BookCover src={cover} title={title} priority sizes="(min-width: 1024px) 340px, (min-width: 768px) 30vw, 280px" />
+                        </div>
+                        <LibraryControls bookId={_id} title={title} totalPages={pages} />
+                    </div>
+
+                    <div className="md:col-span-8">
+                        <div className="flex flex-wrap gap-2">
+                            {genres.map((g) => (
+                                <Link
+                                    key={g}
+                                    href={`/explore?genre=${encodeURIComponent(g)}`}
+                                    className="flex items-center gap-1.5 rounded-full border border-line bg-card px-3 py-1 text-xs font-medium text-ink transition-colors hover:border-ink/40"
+                                >
+                                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: genreColor(g).bg }} aria-hidden />
+                                    {g}
+                                </Link>
+                            ))}
+                        </div>
+
+                        <h1 className="mt-5 text-5xl leading-[1.02] tracking-[-0.025em] text-ink md:text-6xl lg:text-[4.25rem]">{title}</h1>
+                        <p className="mt-3 font-serif text-2xl italic text-ink-muted">
+                            by{" "}
+                            <Link
+                                href={`/explore?q=${encodeURIComponent(author)}`}
+                                className="text-ink decoration-ink/30 decoration-1 underline-offset-[5px] transition-colors hover:underline"
+                            >
+                                {author}
+                            </Link>
+                        </p>
+
+                        <a href="#reviews" className="mt-5 inline-flex items-center gap-2.5 rounded-full text-sm text-ink-muted transition-colors hover:text-ink">
+                            {ratingCount ? (
+                                <>
+                                    <StarRating value={ratingAvg} size={16} />
+                                    <span className="font-semibold tabular-nums text-ink">{ratingAvg.toFixed(1)}</span>
+                                    <span>
+                                        {ratingCount} {ratingCount === 1 ? "rating" : "ratings"}
+                                    </span>
+                                </>
+                            ) : (
+                                <>
+                                    <StarRating value={0} size={16} />
+                                    <span>No ratings yet. Be the first to review it.</span>
+                                </>
+                            )}
+                        </a>
+
+                        {/* gap-px over a line-coloured background draws the rules between cells */}
+                        <dl className="mt-10 grid grid-cols-2 gap-px border-y border-line bg-line sm:grid-cols-4">
+                            {facts.map(({ label, value }) => (
+                                <div key={label} className="bg-background py-4 pl-5 first:pl-0 nth-3:pl-0 sm:nth-3:pl-5">
+                                    <dt className="eyebrow">{label}</dt>
+                                    <dd className="mt-1.5 font-serif text-2xl text-ink">{value ?? "—"}</dd>
+                                </div>
+                            ))}
+                        </dl>
+
+                        <div className="mt-10">
+                            <h2 className="sr-only">About this book</h2>
+                            <p className="max-w-[65ch] whitespace-pre-line text-[17px] leading-[1.75] text-ink/90 first-letter:float-left first-letter:mr-2.5 first-letter:mt-1.5 first-letter:font-serif first-letter:text-[4.25rem] first-letter:leading-[0.8] first-letter:text-ink">
+                                {summary}
+                            </p>
+                        </div>
+
+                        <div className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5 text-sm text-ink-muted">
+                            <p>
+                                Added by <span className="font-semibold text-ink">{addedBy?.firstName || "a reader"}</span> on {formatDate(createdAt)}
+                            </p>
+                            {isOwner && (
+                                <Button asChild size="sm" variant="outline">
+                                    <Link href={`/edit-book/${_id}`}>
+                                        <Pencil /> Edit details
+                                    </Link>
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </div>
 
-                <div id="reviews" className="scroll-mt-24">
+                <div id="reviews" className="scroll-mt-24 pt-24">
                     <Reviews bookId={_id} />
                 </div>
 
                 {similar.length > 0 && (
-                    <section className="space-y-6">
-                        <div className="flex items-end justify-between gap-4">
-                            <h2 className="text-4xl text-ink">You might also like</h2>
-                            <Link href={`/explore?genre=${encodeURIComponent(genres[0])}`} className="text-sm font-medium text-ink-muted hover:text-ink">
-                                More {genres[0]} →
-                            </Link>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4">
+                    <section className="space-y-10 pt-24">
+                        <SectionHeader
+                            title="You might also like"
+                            link={mainGenre ? { href: `/explore?genre=${encodeURIComponent(mainGenre)}`, label: `More ${mainGenre}` } : undefined}
+                        />
+                        <div className={BOOK_GRID}>
                             {similar.map((b) => (
                                 <BookCard key={b._id} {...b} />
                             ))}
@@ -131,7 +154,7 @@ const BookDetails = ({ book, similar, isOwner }: BookDetailsProps) => {
                     </section>
                 )}
             </div>
-        </section>
+        </article>
     );
 };
 

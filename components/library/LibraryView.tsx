@@ -1,13 +1,14 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { STATUS_LABELS } from "@/lib/genres";
+import { STATUS_LABELS, genreColor } from "@/lib/genres";
 import { cn } from "@/lib/utils";
 import axios from "axios";
-import { BookCheck, BookMarked, BookOpen, Compass, FileText, Library } from "lucide-react";
+import { Compass } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import Swal from "sweetalert2";
+import { useConfirm } from "../ConfirmDialog";
+import { Shimmer } from "../BookCardSkeleton";
 import LibraryCard from "./LibraryCard";
 
 type Tab = "all" | ReadingStatus;
@@ -15,11 +16,24 @@ type Tab = "all" | ReadingStatus;
 const TABS: { value: Tab; label: string }[] = [
     { value: "all", label: "All" },
     { value: "reading", label: "Reading" },
-    { value: "want-to-read", label: "Want to Read" },
+    { value: "want-to-read", label: "Want to read" },
     { value: "finished", label: "Finished" },
 ];
 
+const EMPTY_TAB: Record<ReadingStatus, string> = {
+    reading: "Nothing in progress. Start a book from your Want to read list.",
+    "want-to-read": "Your reading list is empty. Save books you'd like to read next.",
+    finished: "No finished books yet. They'll collect here as you go.",
+};
+
+const BREAKDOWN: { status: ReadingStatus; color: string }[] = [
+    { status: "finished", color: "#86EFAC" },
+    { status: "reading", color: "#93B4F5" },
+    { status: "want-to-read", color: "rgba(255,255,255,0.85)" },
+];
+
 const LibraryView = () => {
+    const confirm = useConfirm();
     const [items, setItems] = useState<LibraryEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [busyId, setBusyId] = useState<string | null>(null);
@@ -29,20 +43,23 @@ const LibraryView = () => {
         axios
             .get("/api/library")
             .then((res) => setItems(res.data.items))
-            .catch(() => toast.error("Couldn't load your library"))
+            .catch(() => toast.error("Couldn't load your library. Refresh to try again."))
             .finally(() => setLoading(false));
     }, []);
 
     const stats = useMemo(() => {
         const year = new Date().getFullYear();
         const genreCounts = new Map<string, number>();
-        items.forEach((e) => e.book.genre.forEach((g) => genreCounts.set(g, (genreCounts.get(g) ?? 0) + 1)));
+        items.forEach((e) => e.book.genre?.forEach((g) => genreCounts.set(g, (genreCounts.get(g) ?? 0) + 1)));
         const topGenres = [...genreCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
+        const byStatus: Record<ReadingStatus, number> = {
+            "want-to-read": items.filter((e) => e.status === "want-to-read").length,
+            reading: items.filter((e) => e.status === "reading").length,
+            finished: items.filter((e) => e.status === "finished").length,
+        };
 
         return {
-            reading: items.filter((e) => e.status === "reading").length,
-            want: items.filter((e) => e.status === "want-to-read").length,
-            finished: items.filter((e) => e.status === "finished").length,
+            byStatus,
             finishedThisYear: items.filter(
                 (e) => e.status === "finished" && e.finishedAt && new Date(e.finishedAt).getFullYear() === year
             ).length,
@@ -53,7 +70,7 @@ const LibraryView = () => {
     }, [items]);
 
     const visible = tab === "all" ? items : items.filter((e) => e.status === tab);
-    const countFor = (t: Tab) => (t === "all" ? items.length : t === "reading" ? stats.reading : t === "finished" ? stats.finished : stats.want);
+    const countFor = (t: Tab) => (t === "all" ? items.length : stats.byStatus[t]);
 
     const update = async (bookId: string, body: Partial<Pick<LibraryEntry, "status" | "currentPage">>) => {
         setBusyId(bookId);
@@ -62,28 +79,25 @@ const LibraryView = () => {
             const updated = res.data.entry;
             setItems((prev) => prev.map((e) => (e.book._id === bookId ? { ...e, ...updated, book: e.book } : e)));
             if (updated.status === "finished" && body.status !== "finished") {
-                toast.success("Marked as finished");
+                toast.success("Finished. Nicely done.");
             } else {
-                toast.success(body.status ? `Moved to “${STATUS_LABELS[updated.status as ReadingStatus]}”` : "Progress saved");
+                toast.success(body.status ? `Moved to ${STATUS_LABELS[updated.status as ReadingStatus]}` : "Progress saved");
             }
         } catch {
-            toast.error("Couldn't update this book");
+            toast.error("Couldn't update this book. Try again.");
         } finally {
             setBusyId(null);
         }
     };
 
     const remove = async (entry: LibraryEntry) => {
-        const result = await Swal.fire({
-            title: "Remove from library?",
-            text: `“${entry.book.title}” and your reading progress will be removed from your shelf.`,
-            icon: "question",
-            showCancelButton: true,
-            confirmButtonColor: "#141B34",
-            cancelButtonColor: "#9CA3AF",
-            confirmButtonText: "Remove",
+        const ok = await confirm({
+            title: "Remove from your library?",
+            description: `“${entry.book.title}” and your reading progress will be taken off your shelf.`,
+            confirmLabel: "Remove",
+            tone: "danger",
         });
-        if (!result.isConfirmed) return;
+        if (!ok) return;
 
         setBusyId(entry.book._id);
         try {
@@ -91,27 +105,25 @@ const LibraryView = () => {
             setItems((prev) => prev.filter((e) => e._id !== entry._id));
             toast.info("Removed from your library");
         } catch {
-            toast.error("Couldn't remove this book");
+            toast.error("Couldn't remove this book. Try again.");
         } finally {
             setBusyId(null);
         }
     };
 
-    const statTiles = [
-        { label: "Books on shelf", value: items.length, icon: Library },
-        { label: "Currently reading", value: stats.reading, icon: BookOpen },
-        { label: `Finished in ${new Date().getFullYear()}`, value: stats.finishedThisYear, icon: BookCheck },
-        { label: "Pages read", value: stats.pagesRead.toLocaleString("en-US"), icon: FileText },
+    const figures = [
+        { label: "On your shelf", value: items.length },
+        { label: "Reading now", value: stats.byStatus.reading },
+        { label: `Finished in ${new Date().getFullYear()}`, value: stats.finishedThisYear },
+        { label: "Pages read", value: stats.pagesRead.toLocaleString("en-US") },
     ];
 
     if (loading) {
         return (
-            <div className="space-y-8" aria-busy>
-                <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                    {Array.from({ length: 4 }, (_, i) => <div key={i} className="h-24 animate-pulse rounded-md bg-stack/50" />)}
-                </div>
+            <div className="space-y-12" aria-busy aria-label="Loading your library">
+                <Shimmer className="h-24 w-full" />
                 <div className="grid gap-4 md:grid-cols-2">
-                    {Array.from({ length: 4 }, (_, i) => <div key={i} className="h-40 animate-pulse rounded-md bg-stack/40" />)}
+                    {Array.from({ length: 4 }, (_, i) => <Shimmer key={i} className="h-40 rounded-2xl" />)}
                 </div>
             </div>
         );
@@ -119,36 +131,38 @@ const LibraryView = () => {
 
     if (items.length === 0) {
         return (
-            <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed border-line bg-card px-6 py-20 text-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-sm bg-stack">
-                    <BookMarked className="h-8 w-8 text-ink" />
+            <div className="flex flex-col items-center rounded-3xl border border-line bg-card px-6 py-20 text-center">
+                {/* Three empty spine outlines waiting for books */}
+                <div className="flex h-20 items-end gap-1.5" aria-hidden>
+                    {[64, 84, 72].map((h, i) => (
+                        <span key={i} className="w-6 rounded-t-[3px] border-2 border-dashed border-ink/20" style={{ height: `${h}%` }} />
+                    ))}
                 </div>
-                <h2 className="text-2xl font-bold text-ink">Your shelf is empty</h2>
-                <p className="max-w-md text-ink-muted">
-                    Find a book you love, add it to your library and start tracking your reading progress.
+                <h2 className="mt-8 text-4xl text-ink">Your shelf is empty</h2>
+                <p className="mt-3 max-w-md text-ink-muted">
+                    Find a book you&apos;re reading or want to read, and add it here to start tracking your progress.
                 </p>
-                <Button asChild size="lg" className="mt-2 rounded-sm">
-                    <Link href="/explore"><Compass className="h-4 w-4" /> Explore books</Link>
+                <Button asChild size="lg" className="mt-8">
+                    <Link href="/explore"><Compass /> Explore books</Link>
                 </Button>
             </div>
         );
     }
 
     return (
-        <div className="space-y-10">
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                {statTiles.map(({ label, value, icon: Icon }) => (
-                    <div key={label} className="rounded-md border border-line/80 bg-card p-5">
-                        <Icon className="h-5 w-5 text-ink-muted" />
-                        <p className="mt-3 font-mono text-3xl font-medium tabular-nums text-ink">{value}</p>
-                        <p className="text-sm text-ink-muted">{label}</p>
+        <div className="space-y-14">
+            <dl className="grid grid-cols-2 gap-px border-y border-line bg-line lg:grid-cols-4">
+                {figures.map(({ label, value }) => (
+                    <div key={label} className="bg-background py-5 pl-5 first:pl-0 nth-3:pl-0 lg:nth-3:pl-5">
+                        <dt className="eyebrow">{label}</dt>
+                        <dd className="mt-2 font-serif text-5xl leading-none tabular-nums text-ink">{value}</dd>
                     </div>
                 ))}
-            </div>
+            </dl>
 
-            <div className="grid gap-8 lg:grid-cols-12">
+            <div className="grid gap-12 lg:grid-cols-12">
                 <div className="space-y-6 lg:col-span-8">
-                    <div className="flex gap-1 overflow-x-auto rounded-md bg-secondary p-1" role="tablist" aria-label="Filter by status">
+                    <div className="scrollbar-none -mx-5 flex gap-6 overflow-x-auto border-b border-line px-5 sm:mx-0 sm:px-0" role="tablist" aria-label="Filter by status">
                         {TABS.map((t) => (
                             <button
                                 key={t.value}
@@ -157,22 +171,28 @@ const LibraryView = () => {
                                 aria-selected={tab === t.value}
                                 onClick={() => setTab(t.value)}
                                 className={cn(
-                                    "flex flex-1 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                                    tab === t.value ? "bg-white text-ink shadow-sm" : "text-ink-muted hover:text-ink"
+                                    "relative flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap pb-3 pt-1 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+                                    tab === t.value ? "text-ink" : "text-ink-muted hover:text-ink"
                                 )}
                             >
                                 {t.label}
-                                <span className="rounded-sm bg-stack/80 px-1.5 text-xs tabular-nums">{countFor(t.value)}</span>
+                                <span className={cn("rounded-full px-1.5 text-xs tabular-nums", tab === t.value ? "bg-ink text-white" : "bg-ink/6")}>
+                                    {countFor(t.value)}
+                                </span>
+                                <span aria-hidden className={cn("absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-ink transition-opacity", tab === t.value ? "opacity-100" : "opacity-0")} />
                             </button>
                         ))}
                     </div>
 
                     {visible.length === 0 ? (
-                        <p className="rounded-md bg-card py-14 text-center text-ink-muted">
-                            Nothing here yet.
-                        </p>
+                        <div className="rounded-2xl border border-dashed border-line px-6 py-14 text-center">
+                            <p className="font-serif text-xl italic text-ink-muted">{tab !== "all" && EMPTY_TAB[tab]}</p>
+                            <Button asChild variant="outline" className="mt-5">
+                                <Link href="/explore">Find a book</Link>
+                            </Button>
+                        </div>
                     ) : (
-                        <div className="grid gap-4 md:grid-cols-2">
+                        <div className="grid gap-4 md:grid-cols-2" role="tabpanel">
                             {visible.map((entry) => (
                                 <LibraryCard
                                     key={`${entry._id}-${entry.currentPage}`}
@@ -187,42 +207,44 @@ const LibraryView = () => {
                 </div>
 
                 <aside className="space-y-6 lg:col-span-4">
-                    <div className="rounded-md border border-line/80 bg-card p-5">
-                        <h2 className="text-lg font-bold text-ink">Your top genres</h2>
-                        <ul className="mt-4 space-y-3">
-                            {stats.topGenres.map(([genre, count]) => (
-                                <li key={genre} className="space-y-1">
-                                    <div className="flex justify-between text-sm">
-                                        <Link href={`/explore?genre=${encodeURIComponent(genre)}`} className="text-ink hover:underline">{genre}</Link>
-                                        <span className="tabular-nums text-ink-muted">{count}</span>
-                                    </div>
-                                    <div className="h-1.5 overflow-hidden rounded-sm bg-stack/60">
-                                        <div className="h-full rounded-sm bg-ink/80" style={{ width: `${(count / stats.maxGenre) * 100}%` }} />
-                                    </div>
+                    {stats.topGenres.length > 0 && (
+                        <div className="rounded-2xl border border-line bg-card p-6">
+                            <h2 className="text-2xl text-ink">Your top genres</h2>
+                            <ul className="mt-5 space-y-4">
+                                {stats.topGenres.map(([genre, count]) => (
+                                    <li key={genre} className="space-y-1.5">
+                                        <div className="flex justify-between text-sm">
+                                            <Link href={`/explore?genre=${encodeURIComponent(genre)}`} className="text-ink decoration-ink/30 underline-offset-4 hover:underline">{genre}</Link>
+                                            <span className="tabular-nums text-ink-muted">{count}</span>
+                                        </div>
+                                        <div className="h-1.5 overflow-hidden rounded-full bg-ink/8">
+                                            <div className="h-full rounded-full" style={{ width: `${(count / stats.maxGenre) * 100}%`, backgroundColor: genreColor(genre).bg }} />
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    <div className="rounded-2xl bg-ink p-6 text-white">
+                        <h2 className="text-2xl">Reading breakdown</h2>
+                        <div className="mt-5 flex h-2 gap-0.5 overflow-hidden rounded-full bg-white/10">
+                            {BREAKDOWN.map(({ status, color }) => (
+                                <div
+                                    key={status}
+                                    title={`${STATUS_LABELS[status]}: ${stats.byStatus[status]}`}
+                                    style={{ width: `${(stats.byStatus[status] / items.length) * 100}%`, backgroundColor: color }}
+                                />
+                            ))}
+                        </div>
+                        <ul className="mt-5 space-y-2 text-sm text-white/75">
+                            {BREAKDOWN.map(({ status, color }) => (
+                                <li key={status} className="flex items-center gap-2.5">
+                                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+                                    {STATUS_LABELS[status]}
+                                    <span className="ml-auto tabular-nums text-white">{stats.byStatus[status]}</span>
                                 </li>
                             ))}
-                        </ul>
-                    </div>
-
-                    <div className="rounded-md bg-ink p-5 text-white">
-                        <p className="text-sm text-white/70">Reading breakdown</p>
-                        <div className="mt-3 flex h-3 overflow-hidden rounded-sm bg-white/15">
-                            {(["finished", "reading", "want-to-read"] as ReadingStatus[]).map((s) => {
-                                const n = s === "finished" ? stats.finished : s === "reading" ? stats.reading : stats.want;
-                                return (
-                                    <div
-                                        key={s}
-                                        title={`${STATUS_LABELS[s]}: ${n}`}
-                                        className={s === "finished" ? "bg-[#86EFAC]" : s === "reading" ? "bg-[#93B4F5]" : "bg-card"}
-                                        style={{ width: `${(n / items.length) * 100}%` }}
-                                    />
-                                );
-                            })}
-                        </div>
-                        <ul className="mt-3 space-y-1 text-sm">
-                            <li className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-[#86EFAC]" /> Finished · {stats.finished}</li>
-                            <li className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-[#93B4F5]" /> Reading · {stats.reading}</li>
-                            <li className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-card" /> Want to read · {stats.want}</li>
                         </ul>
                     </div>
                 </aside>
