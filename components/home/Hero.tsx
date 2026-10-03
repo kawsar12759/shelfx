@@ -82,19 +82,19 @@ const Hero = ({ stats, books }: HeroProps) => {
 
     return (
         <section className="relative overflow-x-clip">
-            <div className="mx-auto max-w-7xl px-5 pt-14 text-center md:pt-24">
-                <h1 className="mx-auto text-[3.25rem] leading-[0.98] tracking-[-0.03em] text-ink sm:text-7xl lg:text-[5.75rem]">
+            <div className="mx-auto max-w-7xl px-5 pt-12 text-center md:pt-14">
+                <h1 className="mx-auto text-[3.25rem] leading-[0.98] tracking-[-0.03em] text-ink sm:text-7xl lg:text-[4.75rem]">
                     {/* One sentence per line on desktop; narrower screens balance the wrap */}
                     <span className="block lg:whitespace-nowrap">Track what you read.</span>
                     <span className="block italic text-ink-muted lg:whitespace-nowrap">Find what to read next.</span>
                 </h1>
-                <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-ink-muted">
+                <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-ink-muted">
                     A shelf you keep with other readers. Find a book, log the page you&apos;re on,
                     and say what you thought when you finish.
                 </p>
 
                 {/* Plain GET form: works before hydration and lands on a shareable URL */}
-                <form action="/explore" role="search" className="mx-auto mt-10 flex max-w-xl items-center gap-2 rounded-full border border-line bg-white p-1.5 pl-5 text-left shadow-soft transition-shadow focus-within:border-ink/30 focus-within:shadow-lift">
+                <form action="/explore" role="search" className="mx-auto mt-8 flex max-w-xl items-center gap-2 rounded-full border border-line bg-white p-1.5 pl-5 text-left shadow-soft transition-shadow focus-within:border-ink/30 focus-within:shadow-lift">
                     <Search className="h-5 w-5 shrink-0 text-ink-muted" aria-hidden />
                     <input
                         type="search"
@@ -115,9 +115,9 @@ const Hero = ({ stats, books }: HeroProps) => {
                 </p>
 
                 {books.length > 0 && (
-                    <div className="mt-16 text-left md:mt-20">
+                    <div className="mt-12 text-left">
                         {/* The books sit centred between two bookends; the plank runs the full width */}
-                        <div className="flex h-52 items-end justify-center md:h-72">
+                        <div className="flex h-52 items-end justify-center md:h-[clamp(12rem,30svh,18rem)]">
                             <Bookend side="left" />
                             <ul className="flex h-full min-w-0 flex-1 items-end gap-0.75" style={{ maxWidth: maxShelfWidth }}>
                                 {books.map((book, i) => (
